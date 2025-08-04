@@ -1,19 +1,20 @@
-from dash import html, dcc, dash_table
-import pandas as pd
-import io
+"""Functionality related to TAS diagram file upload handling."""
+
 import base64
-from geoplotnik.data.loaders import load_data
-from geoplotnik.data.source import DataSource
+import io
 
-
-source = DataSource(load_data())
+import pandas as pd
+from dash import dcc
+from dash import html
+from geoplotnik.components.ids import DATA_UPLOAD_AREA
 
 
 def render() -> html.Div:
+    """Render the uploader's UI."""
     return html.Div(
         [
             dcc.Upload(
-                id="upload-data",
+                id=DATA_UPLOAD_AREA,
                 children=html.Div(["Drag and Drop or ", html.A("Select Files")]),
                 style={
                     "width": "100%",
@@ -27,34 +28,5 @@ def render() -> html.Div:
                 },
                 multiple=False,
             ),
-            html.Div(id="output-data-upload"),
-        ],
-    )
-
-
-def parse_contents(contents, filename, date):
-    content_type, content_string = contents.split(",")
-
-    decoded = base64.b64decode(content_string)
-    try:
-        if "csv" in filename:
-            # Assume that the user uploaded a CSV file
-            df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-        elif "xls" in filename:
-            # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
-    except Exception as e:
-        print(e)
-        return html.Div(["There was an error processing this file."])
-
-    return html.Div(
-        [
-            html.H5(filename),
-            dash_table.DataTable(
-                data=df.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df.columns],
-                page_size=15,
-            ),
-            html.Hr(),
         ],
     )

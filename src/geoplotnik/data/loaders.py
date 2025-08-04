@@ -3,9 +3,7 @@ from enum import Enum
 import os
 import io
 from pathlib import Path
-from dotenv import load_dotenv
 
-load_dotenv()
 
 
 class DataSchema(Enum):
@@ -45,28 +43,5 @@ def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.Data
         print(f"Error loading data: {e}")
         return pd.DataFrame({"Location": ["Unknown"]})
 
-    data["Location"] = data["Location"].replace("", pd.NA).fillna("Unknown")
-    return data
-
-
-def load_data_(source: Path | str | io.StringIO | None = None) -> pd.DataFrame:
-    """Load tabular data to display."""
-    if source is None:
-        try:
-            source = os.getenv("DEFAULT_DATA")
-        except Exception as e:
-            print(e)
-
-    assert source is not None
-    data = pd.read_csv(
-        source,
-        usecols=[m.value for m in DataSchema.__members__.values()],
-        dtype={
-            DataSchema.LOCATION: str,
-            DataSchema.MGO: float,
-            DataSchema.SIO2: float,
-            DataSchema.TIO2: float,
-        },
-    )
     data["Location"] = data["Location"].replace("", pd.NA).fillna("Unknown")
     return data

@@ -9,6 +9,9 @@ from dash import Input
 from dash import Output
 from dash import State
 from dash.exceptions import PreventUpdate
+from geoplotnik.components.ids import DATA_STORE
+from geoplotnik.components.ids import DATA_UPLOAD_AREA
+from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM
 from geoplotnik.components.ids import TAS_DIAGRAM_LOCATION_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_LOCATION_SELECT_ALL_BUTTON
@@ -17,24 +20,23 @@ from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
 from geoplotnik.data.loaders import load_data
 
 
-
 @callback(
-    Output("data-store", "data"),
+    Output(DATA_STORE, "data"),
     Input("url", "pathname"),
-    Input("upload-data", "contents"),
-    State("upload-data", "filename"),
-    State("upload-data", "last_modified"),
+    Input(DATA_UPLOAD_AREA, "contents"),
+    State(DATA_UPLOAD_AREA, "filename"),
+    State(DATA_UPLOAD_AREA, "last_modified"),
 )
-def update_data_store(url, list_of_contents, list_of_names, list_of_dates):
+def update_data_store(url: str, contents: list, names: list, dates: list) -> dict:
     print("Updating data store.")
 
     # If this is true, we probably have an issue.
-    if list_of_contents is None and url is None:
+    if contents is None and url is None:
         raise PreventUpdate
-    
-    if list_of_contents is not None:
-        print(f"File received: {list_of_names}.")
-        content_type, content_string = list_of_contents.split(",")
+
+    if contents is not None:
+        print(f"File received: {names}.")
+        content_type, content_string = contents.split(",")
         decoded = base64.b64decode(content_string)
 
         df = load_data(decoded)
@@ -51,15 +53,29 @@ def update_data_store(url, list_of_contents, list_of_names, list_of_dates):
 
 
 @callback(
+    Output(DATA_UPLOAD_PREVIEW, "data"),
+    Output(DATA_UPLOAD_PREVIEW, "columns"),
+    Input(DATA_STORE, "data"),
+)
+def update_data_preview(
+    data: list[dict[str, str]],
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    if not data:
+        raise PreventUpdate
+    columns = [{"name": col, "id": col} for col in data[0]]
+    return data, columns
+
+
+@callback(
     Output(TAS_DIAGRAM_LOCATION_DROPDOWN, "options"),
     Output(TAS_DIAGRAM_LOCATION_DROPDOWN, "value"),
-    Input("data-store", "data"),
+    Input(DATA_STORE, "data"),
     Input(TAS_DIAGRAM_LOCATION_SELECT_ALL_BUTTON, "n_clicks"),
 )
 def update_location_dropdown(data, _: int):
     print("Updating location dropdown.")
     if not data:
-        return [], []
+        raise PreventUpdate
 
     locations = sorted(set(row["Location"] for row in data if "Location" in row))
     options = [{"label": loc, "value": loc} for loc in locations]
@@ -70,16 +86,15 @@ def update_location_dropdown(data, _: int):
 @callback(
     Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "options"),
     Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
-    Input("data-store", "data"),
-    Input(TAS_DIAGRAM_LOCATION_SELECT_ALL_BUTTON, "n_clicks"),
+    Input(DATA_STORE, "data"),
 )
-def populate_x_axis_dropdowns(data, _: int):
+def populate_x_axis_dropdowns(data):
     print("Populating x axis options.")
     if not data:
-        return [{"label": "whoa", "value": "magic"}], "wookie"
+        raise PreventUpdate
     df = pd.DataFrame(data)
 
-    cols = set(col for col in df.columns.tolist())
+    cols = set(df.columns.tolist())
     options = [{"label": col, "value": col} for col in cols]
     default = options[0]["value"]
 
@@ -90,16 +105,15 @@ def populate_x_axis_dropdowns(data, _: int):
 @callback(
     Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "options"),
     Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
-    Input("data-store", "data"),
-    Input(TAS_DIAGRAM_LOCATION_SELECT_ALL_BUTTON, "n_clicks"),
+    Input(DATA_STORE, "data"),
 )
-def populate_y_axis_dropdowns(data, _: int):
+def populate_y_axis_dropdowns(data):
     print("Populating y axis options.")
     if not data:
-        return [{"label": "hello", "value": "howdy"}], "mister twister"
+        raise PreventUpdate
     df = pd.DataFrame(data)
 
-    cols = set(col for col in df.columns.tolist())
+    cols = set(df.columns.tolist())
     options = [{"label": col, "value": col} for col in cols]
     default = options[0]["value"]
 
@@ -109,7 +123,7 @@ def populate_y_axis_dropdowns(data, _: int):
 
 @callback(
     Output(TAS_DIAGRAM, "children"),
-    Input("data-store", "data"),
+    Input(DATA_STORE, "data"),
     Input(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_LOCATION_DROPDOWN, "value"),
