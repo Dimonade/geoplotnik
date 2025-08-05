@@ -5,7 +5,6 @@ import io
 from pathlib import Path
 
 
-
 class DataSchema(Enum):
     LOCATION = "Location"
     SIO2 = "SiO2"
@@ -23,9 +22,12 @@ class DataSchema(Enum):
 def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.DataFrame:
     """Load tabular data to display."""
     if source is None:
+        print("No data source provided.")
         source = os.getenv("DEFAULT_DATA", None)
-        if source is None:
-            return pd.DataFrame({"Location": ["Unknown"]})
+        if source in (None, "{DEFAULT_DATA}"):
+            print("`DEFAULT_DATA` environment variable is not set.")
+            print("Loading default data from assets.")
+            return pd.read_csv("assets/data/tas_diagram/default.csv")
 
     try:
         if isinstance(source, bytes):
