@@ -22,3 +22,14 @@ Currently it only supports a basic subset of the features.
 - Execute the application: `uv run src/geoplotnik/main.py`;
 - Navigate to the newly open page in your browser, or go to `127.0.0.1:8050`;
   _the address of the `Dash` application is printed in the terminal._
+
+## Usage
+
+Upon loading the application, a default dataset appears.
+If you have not set a default data loaction, a dummy set is  used.
+
+### Default values
+
+It is possible to use a `DEFAULT_DATA` environment variable to set the defalut data
+location. The parameter can be set either in the invoking terminal, or in a `.env`
+file. 
