@@ -1,4 +1,5 @@
 import base64
+from typing import Any
 
 import pandas as pd
 import plotly.express as px
@@ -13,8 +14,8 @@ from geoplotnik.components.ids import DATA_STORE
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM
-from geoplotnik.components.ids import TAS_DIAGRAM_LOCATION_DROPDOWN
-from geoplotnik.components.ids import TAS_DIAGRAM_LOCATION_SELECT_ALL_BUTTON
+from geoplotnik.components.ids import TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN
+from geoplotnik.components.ids import TAS_DIAGRAM_GROUPING_PARAMETER_SELECT_ALL_BUTTON
 from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
 from geoplotnik.data.loaders import load_data
@@ -67,58 +68,35 @@ def update_data_preview(
 
 
 @callback(
-    Output(TAS_DIAGRAM_LOCATION_DROPDOWN, "options"),
-    Output(TAS_DIAGRAM_LOCATION_DROPDOWN, "value"),
-    Input(DATA_STORE, "data"),
-    Input(TAS_DIAGRAM_LOCATION_SELECT_ALL_BUTTON, "n_clicks"),
-)
-def update_location_dropdown(data, _: int):
-    print("Updating location dropdown.")
-    if not data:
-        raise PreventUpdate
-
-    locations = sorted(set(row["Location"] for row in data if "Location" in row))
-    options = [{"label": loc, "value": loc} for loc in locations]
-    print(f"Location:\n{locations}")
-    return options, locations
-
-
-@callback(
+    Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "value"),
     Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "options"),
     Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
-    Input(DATA_STORE, "data"),
-)
-def populate_x_axis_dropdowns(data):
-    print("Populating x axis options.")
-    if not data:
-        raise PreventUpdate
-    df = pd.DataFrame(data)
-
-    cols = set(df.columns.tolist())
-    options = [{"label": col, "value": col} for col in cols]
-    default = options[0]["value"]
-
-    print(f"Axes have the following options:\n{options}.")
-    return options, default
-
-
-@callback(
     Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "options"),
     Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
     Input(DATA_STORE, "data"),
+    Input(TAS_DIAGRAM_GROUPING_PARAMETER_SELECT_ALL_BUTTON, "n_clicks"),
 )
-def populate_y_axis_dropdowns(data):
-    print("Populating y axis options.")
+def update_grouping_parameter_dropdown(
+    data: list[dict[str, Any]], _: int
+) -> tuple[
+    list[dict[str, str]], str, list[dict[str, str]], str, list[dict[str, str]], str
+]:
+    print("Updating x axis, y axis and grouping parameter dropdown with data columns..")
     if not data:
         raise PreventUpdate
-    df = pd.DataFrame(data)
 
-    cols = set(df.columns.tolist())
-    options = [{"label": col, "value": col} for col in cols]
-    default = options[0]["value"]
-
-    print(f"Axes have the following options:\n{options}.")
-    return options, default
+    cols = sorted(set(data[0].keys()))
+    opts = [{"label": col, "value": col} for col in cols]
+    print(f"Columns to group by:\n{cols}")
+    return (
+        opts,
+        opts[0]["value"],
+        opts,
+        opts[0]["value"],
+        opts,
+        opts[0]["value"],
+    )
 
 
 @callback(
@@ -126,30 +104,29 @@ def populate_y_axis_dropdowns(data):
     Input(DATA_STORE, "data"),
     Input(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
-    Input(TAS_DIAGRAM_LOCATION_DROPDOWN, "value"),
+    Input(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "value"),
 )
 def update_tas_diagram(
     data: list[dict],
     x_axis: str,
     y_axis: str,
-    locations: list[str],
+    grouping_parameter: str,
 ) -> html.Div:
     print("Update TAS diagram callback triggered.")
     print("Data keys:", type(data), len(data) if data else None)
-    print("x_axis:", x_axis, "y_axis:", y_axis, "locations:", locations)
+    print(
+        "x_axis:", x_axis, "y_axis:", y_axis, "grouping_parameter:", grouping_parameter
+    )
     print(f"Type of record item: {type(data[0])}")
 
     if not data or not x_axis or not y_axis:
         return html.Div("No data.", id=TAS_DIAGRAM)
 
-    if locations:
-        data = [row for row in data if row.get("Location") in locations]
-
     if not data:
         return html.Div("No data for selected locations.", id=TAS_DIAGRAM)
 
     df = pd.DataFrame(data)
-    color_col = "Location" if "Location" in df.columns else None
+    color_col = grouping_parameter if grouping_parameter in df.columns else None
 
     fig = px.scatter(df, x=x_axis, y=y_axis, color=color_col)
     fig.update_layout(title_text="TAS Diagram", title_x=0.5)
