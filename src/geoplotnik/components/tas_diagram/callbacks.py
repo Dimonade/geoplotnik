@@ -82,7 +82,7 @@ def update_grouping_parameter_dropdown(
 ) -> tuple[
     list[dict[str, str]], str, list[dict[str, str]], str, list[dict[str, str]], str
 ]:
-    print("Updating x axis, y axis and grouping parameter dropdown with data columns..")
+    print("Updating x axis, y axis and grouping parameter dropdown with data columns.")
     if not data:
         raise PreventUpdate
 
@@ -93,9 +93,9 @@ def update_grouping_parameter_dropdown(
         opts,
         opts[0]["value"],
         opts,
-        opts[0]["value"],
+        opts[1]["value"],
         opts,
-        opts[0]["value"],
+        opts[2]["value"],
     )
 
 
@@ -117,7 +117,6 @@ def update_tas_diagram(
     print(
         "x_axis:", x_axis, "y_axis:", y_axis, "grouping_parameter:", grouping_parameter
     )
-    print(f"Type of record item: {type(data[0])}")
 
     if not data or not x_axis or not y_axis:
         return html.Div("No data.", id=TAS_DIAGRAM)
@@ -126,9 +125,22 @@ def update_tas_diagram(
         return html.Div("No data for selected locations.", id=TAS_DIAGRAM)
 
     df = pd.DataFrame(data)
-    color_col = grouping_parameter if grouping_parameter in df.columns else None
 
-    fig = px.scatter(df, x=x_axis, y=y_axis, color=color_col)
+    df[x_axis] = pd.to_numeric(df[x_axis], errors="coerce")
+    df[y_axis] = pd.to_numeric(df[y_axis], errors="coerce")
+
+    df = df.dropna(subset=[x_axis, y_axis])
+
+    if len(df) == 0:
+        raise PreventUpdate
+
+    print(f"Types in x_axis: {set([type(x) for x in df[x_axis]])}")
+    print(f"TYpes in y axis: {set([type(y) for y in df[y_axis]])}")
+
+    group_colour = grouping_parameter if grouping_parameter in df.columns else None
+    print(f"Colour groups: {group_colour}")
+
+    fig = px.scatter(df, x=x_axis, y=y_axis, color=group_colour)
     fig.update_layout(title_text="TAS Diagram", title_x=0.5)
     print("Creating a TAS diagram.")
     return html.Div(dcc.Graph(figure=fig), id=TAS_DIAGRAM)
