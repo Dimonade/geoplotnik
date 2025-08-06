@@ -37,13 +37,9 @@ def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.Data
             except Exception:
                 data = pd.read_csv(io.BytesIO(source))
         elif isinstance(source, str | Path):
-            data = pd.read_csv(
-                source,
-                usecols=[m.value for m in DataSchema.__members__.values()],
-            )
+            data = pd.read_csv(source)
     except Exception as e:
         print(f"Error loading data: {e}")
         return pd.DataFrame({"Location": ["Unknown"]})
 
-    data["Location"] = data["Location"].replace("", pd.NA).fillna("Unknown")
     return data
