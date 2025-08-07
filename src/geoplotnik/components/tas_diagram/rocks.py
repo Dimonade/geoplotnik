@@ -23,7 +23,8 @@ class TasBorder:
             name=self.name,
             visible=self.visible,
             showlegend=False,
-            line={"color": self.colour},
+            line={"color": self.colour, "width": 1.5},
+            hovertemplate="x: %{x}<br>y: %{y}<extra></extra>",
         )
 
     def is_closed_polygon(self) -> bool:
@@ -83,7 +84,7 @@ class Rocks(Enum):
         name="Foidite",
         xs=[41, 41, 45, 48.4, 52.5, 50],
         ys=[3, 7, 9.4, 11.5, 14, 15],
-        label_position=(39, 8),
+        label_position=(39, 7.5),
     )
     Picrobasalt = TasBorder(name="Picrobasalt", xs=[41, 41, 45, 45], ys=[0, 3, 3, 0])
     Phonolite = TasBorder(
@@ -97,7 +98,7 @@ class Rocks(Enum):
         ys=[7.3, 9.4, 11.5, 9.3, 7.3],
     )
     Rhyolite = TasBorder(
-        name="Rhyolite", xs=[69, 69, 77.3], ys=[13.0, 8, 0], label_position=(73, 8)
+        name="Rhyolite", xs=[69, 69, 77.3], ys=[13.0, 8, 0], label_position=(73, 7.5)
     )
     Trachyandesite = TasBorder(
         name="Trachyandesite", xs=[57, 53, 57.6, 63, 57], ys=[5.9, 9.3, 11.7, 7, 5.9]
