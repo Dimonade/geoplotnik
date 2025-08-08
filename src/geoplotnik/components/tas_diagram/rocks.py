@@ -34,8 +34,7 @@ class TasBorder:
     def clean_duplicates(self) -> tuple[list[float], list[float]]:
         if self.is_closed_polygon():
             return self.xs[:-1], self.ys[:-1]
-        else:
-            return self.xs, self.ys
+        return self.xs, self.ys
 
     def to_label(self) -> go.Scatter:
         if self.label_position is None:

@@ -79,9 +79,7 @@ def convert_gsheet_url_to_csv(url: str) -> str:
         # Default to first sheet.
         gid = "0"
 
-    return (
-        f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
-    )
+    return f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&gid={gid}"
 
 
 def load_data_from_url(url: str) -> pd.DataFrame | None:
@@ -97,8 +95,9 @@ def load_data_from_url(url: str) -> pd.DataFrame | None:
         return load_data(resp.content)
 
     # ... or in a local server path, ...
-    elif Path.exists(url):
-        with Path.open(url, "rb") as fh:
+    url_path = Path(url)
+    if Path.exists(url_path):
+        with Path.open(url_path, "rb") as fh:
             return load_data(fh.read())
     # ... or it is something else, and we will deal with that as the need arises.
     else:
