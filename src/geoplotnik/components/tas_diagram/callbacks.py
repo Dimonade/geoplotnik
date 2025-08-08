@@ -206,10 +206,7 @@ def update_tas_diagram(
         yaxis={"gridcolor": "black"},
     )
     axes_configuration = {
-        "tickmode": "linear",
-        "showgrid": True,
         "gridcolor": "black",
-        "showline": True,
         "zeroline": True,
         "zerolinewidth": 5,
         "zerolinecolor": "LightPink",
