@@ -1,20 +1,16 @@
+"""Definitions of callbacks that make the TAS diagram interactive."""
+
 import base64
-from dataclasses import dataclass
-from enum import Enum
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-import requests
 from dash import callback
 from dash import ctx
 from dash import dcc
 from dash import html
 from dash import Input
 from dash import Output
-from dash import State
 from dash.exceptions import PreventUpdate
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
@@ -38,17 +34,15 @@ from geoplotnik.data.loaders import load_data_from_url
     Input(DATA_UPLOAD_AREA, "contents"),
     Input(DATA_LOADER_BUTTON, "n_clicks"),
     Input("url", "pathname"),
-    State(DATA_UPLOAD_AREA, "filename"),
-    State(DATA_UPLOAD_AREA, "last_modified"),
 )
 def update_data_store(
     url_value: str,
-    upload_contents: list,
-    load_button_clicks: int,
-    filenames,
-    last_modified,
-    _,
-) -> list[dict[str, Any]]:
+    upload_contents: list[Any],
+    *_: tuple[
+        int,  # I just want the update signal, the n_clicks is not important.
+        str,  # I just want the update signal for application initialization.
+    ],
+) -> tuple[list[dict[str, Any]], str | None, str | None]:
     print("Updating data store.")
     triggered = ctx.triggered_id
     if triggered is None:
@@ -107,8 +101,8 @@ def update_data_store(
         # In any other case, prevent update.
         raise PreventUpdate
 
-    # Since many things can go wrong, at the moment, blanket catch all exceptions, and deal with them
-    # on a per case basis, as the cases come by.
+    # Since many things can go wrong, at the moment, blanket catch all exceptions,
+    # and deal with then on a per case basis, as the cases come by.
     except Exception as exc:
         print("update_data_store: failed to load data:", repr(exc))
         raise PreventUpdate
@@ -190,9 +184,6 @@ def update_tas_diagram(
     if len(df) == 0:
         raise PreventUpdate
 
-    print(f"Types in x_axis: {set([type(x) for x in df[x_axis]])}")
-    print(f"TYpes in y axis: {set([type(y) for y in df[y_axis]])}")
-
     group = grouping_parameter if grouping_parameter in df.columns else None
 
     fig = px.scatter(df, x=x_axis, y=y_axis, color=group, symbol=group)
@@ -257,7 +248,7 @@ def create_tas_overlay(fig: Any) -> Any:
                                 "title": {
                                     "text": "TAS Diagram<br>values in [wt%]",
                                     "x": 0.5,
-                                }
+                                },
                             },
                         ],
                         "args2": [
@@ -269,7 +260,7 @@ def create_tas_overlay(fig: Any) -> Any:
                                 "title": {
                                     "text": "Scatter Plot",
                                     "x": 0.5,
-                                }
+                                },
                             },
                         ],
                     },
@@ -279,7 +270,7 @@ def create_tas_overlay(fig: Any) -> Any:
                 "y": -0.15,
                 "xanchor": "left",
                 "yanchor": "top",
-            }
+            },
         ],
         margin={"t": 120},
     )

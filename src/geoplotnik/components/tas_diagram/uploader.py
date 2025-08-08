@@ -1,9 +1,5 @@
 """Functionality related to TAS diagram file upload handling."""
 
-import base64
-import io
-
-import pandas as pd
 from dash import dcc
 from dash import html
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
@@ -45,6 +41,7 @@ def render() -> html.Div:
                     "display": "flex",
                     "gap": "8px",
                     "align-items": "center",
+                    "width": "800px",
                 },
             ),
         ],
