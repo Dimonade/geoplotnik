@@ -1,18 +1,22 @@
 import base64
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
 from dash import callback
+from dash import ctx
 from dash import dcc
 from dash import html
 from dash import Input
 from dash import Output
 from dash import State
 from dash.exceptions import PreventUpdate
+from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
@@ -20,42 +24,94 @@ from geoplotnik.components.ids import TAS_DIAGRAM
 from geoplotnik.components.ids import TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
+from geoplotnik.components.ids import URL_INPUT
 from geoplotnik.components.tas_diagram.rocks import Rocks
 from geoplotnik.data.loaders import load_data
+from geoplotnik.data.loaders import load_data_from_url
 
 
 @callback(
     Output(DATA_STORE, "data"),
-    Input("url", "pathname"),
+    Output(URL_INPUT, "value"),
+    Output(DATA_UPLOAD_AREA, "contents"),
+    Input(URL_INPUT, "value"),
     Input(DATA_UPLOAD_AREA, "contents"),
+    Input(DATA_LOADER_BUTTON, "n_clicks"),
+    Input("url", "pathname"),
     State(DATA_UPLOAD_AREA, "filename"),
     State(DATA_UPLOAD_AREA, "last_modified"),
 )
 def update_data_store(
-    url: str, contents: list, names: list, dates: list
+    url_value: str,
+    upload_contents: list,
+    load_button_clicks: int,
+    filenames,
+    last_modified,
+    _,
 ) -> list[dict[str, Any]]:
     print("Updating data store.")
+    triggered = ctx.triggered_id
+    if triggered is None:
+        raise PreventUpdate
+    url_out = url_value
+    upload_out = upload_contents
 
-    # If this is true, we probably have an issue.
-    if contents is None and url is None:
+    try:
+        # Default data loading upon dashboard initialization.
+        if triggered == "url":
+            df = load_data()
+            url_out = ""
+            upload_out = None
+            return df.to_dict("records"), url_out, upload_out
+
+        # Drap and drop from local user storage is triggered.
+        if triggered == DATA_UPLOAD_AREA and upload_contents:
+            c = (
+                upload_contents[0]
+                if isinstance(upload_contents, list)
+                else upload_contents
+            )
+            if not isinstance(c, str) or "," not in c:
+                msg = "Upload data contents are malformed."
+                raise ValueError(msg)
+            content_type, content_string = c.split(",", 1)
+            decoded = base64.b64decode(content_string)
+            df = load_data(decoded)
+
+            url_out = ""
+            upload_out = upload_contents
+            return df.to_dict("records"), url_out, upload_out
+
+        # URL loading is triggered.
+        if triggered == DATA_LOADER_BUTTON:
+            if not url_value:
+                print("Load URL button was triggered but no URL supplied.")
+                raise PreventUpdate
+
+            df = load_data_from_url(url_value)
+            if df is None:
+                raise PreventUpdate
+
+            url_out = url_value
+            upload_out = None
+            return df.to_dict("records"), url_out, upload_out
+
+        # Return is pressed inside of the URL input.
+        if triggered == URL_INPUT:
+            if not url_value:
+                print("Return inside URL input was triggered but no URL was supplied.")
+            df = load_data_from_url(url_value)
+            if df is None:
+                raise PreventUpdate
+
+        # In any other case, prevent update.
         raise PreventUpdate
 
-    if contents is not None:
-        print(f"File received: {names}.")
-        content_type, content_string = contents.split(",")
-        decoded = base64.b64decode(content_string)
-
-        df = load_data(decoded)
-    elif url is not None:
-        print("Trying to load default data.")
-        df = load_data()
-    else:
-        print("Cannot load any data.")
-
-    print("Loaded dataframe shape:", df.shape)
-    print("Columns:", df.columns.tolist())
-    print("Sample first row:", df.head(1).to_dict("records"))
-    return df.to_dict("records")
+    # Since many things can go wrong, at the moment, blanket catch all exceptions, and deal with them
+    # on a per case basis, as the cases come by.
+    except Exception as exc:
+        print("update_data_store: failed to load data:", repr(exc))
+        raise PreventUpdate
 
 
 @callback(
@@ -141,7 +197,7 @@ def update_tas_diagram(
 
     fig = px.scatter(df, x=x_axis, y=y_axis, color=group, symbol=group)
     fig.update_layout(
-        title_text="TAS Diagram",
+        title_text="TAS Diagram<br>values in [wt%]",
         title_x=0.5,
         height=800,
         plot_bgcolor="white",
@@ -149,6 +205,17 @@ def update_tas_diagram(
         xaxis={"gridcolor": "black"},
         yaxis={"gridcolor": "black"},
     )
+    axes_configuration = {
+        "tickmode": "linear",
+        "showgrid": True,
+        "gridcolor": "black",
+        "showline": True,
+        "zeroline": True,
+        "zerolinewidth": 5,
+        "zerolinecolor": "LightPink",
+    }
+    fig.update_xaxes(axes_configuration)
+    fig.update_yaxes(axes_configuration)
     fig = create_tas_overlay(fig)
     print("Creating a TAS diagram.")
     return html.Div(
@@ -191,7 +258,7 @@ def create_tas_overlay(fig: Any) -> Any:
                             {"visible": [True] * len(fig.data)},
                             {
                                 "title": {
-                                    "text": "TAS Diagram",
+                                    "text": "TAS Diagram<br>values in [wt%]",
                                     "x": 0.5,
                                 }
                             },
@@ -203,7 +270,7 @@ def create_tas_overlay(fig: Any) -> Any:
                             },
                             {
                                 "title": {
-                                    "text": "TAS Diagram",
+                                    "text": "Scatter Plot",
                                     "x": 0.5,
                                 }
                             },

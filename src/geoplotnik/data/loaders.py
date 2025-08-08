@@ -1,8 +1,13 @@
-import pandas as pd
-from enum import Enum
-import os
 import io
+import os
+import re
+from enum import Enum
 from pathlib import Path
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
+
+import pandas as pd
+import requests
 
 
 class DataSchema(Enum):
@@ -43,3 +48,59 @@ def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.Data
         return pd.DataFrame({"Location": ["Unknown"]})
 
     return data
+
+
+def convert_gsheet_url_to_csv(url: str) -> str:
+    """Convert the Google sheet link into a tabular-able data source."""
+    if "docs.google.com/spreadsheets" not in url:
+        return url
+
+    # Extract sheet_id from URL path.
+    m = re.search(r"/d/([a-zA-Z0-9-_]+)", url)
+    if not m:
+        return url
+
+    sheet_id = m.group(1)
+
+    # Try to get `gid`` from query parameters or fragment.
+    parsed = urlparse(url)
+    query_params = parse_qs(parsed.query)
+    gid = None
+
+    # `gid`` is sometimes in query or fragment.
+    if "gid" in query_params:
+        gid = query_params["gid"][0]
+    else:
+        frag = parsed.fragment
+        if frag.startswith("gid="):
+            gid = frag[4:]
+
+    if gid is None:
+        # Default to first sheet.
+        gid = "0"
+
+    return (
+        f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+    )
+
+
+def load_data_from_url(url: str) -> pd.DataFrame | None:
+    print(f"Fetching URL: `{url}`.")
+
+    # The data is either truly online, ...
+    if url.startswith(("http://", "https://")):
+        url = convert_gsheet_url_to_csv(
+            url
+        )  # Is it a strange Google sheet export link?
+        resp = requests.get(url, timeout=15, allow_redirects=True)
+        resp.raise_for_status()
+        return load_data(resp.content)
+
+    # ... or in a local server path, ...
+    elif Path.exists(url):
+        with Path.open(url, "rb") as fh:
+            return load_data(fh.read())
+    # ... or it is something else, and we will deal with that as the need arises.
+    else:
+        print(f"An unhandled URL was passed: `{url}`.")
+        return None

@@ -1,5 +1,7 @@
-from dash import html, dash_table
+from dash import dash_table
+from dash import html
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
+
 
 def render() -> html.Div:
     """Render the previewer's UI."""
