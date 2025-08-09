@@ -1,7 +1,7 @@
 import io
 import os
 import re
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
@@ -10,18 +10,73 @@ import pandas as pd
 import requests
 
 
-class DataSchema(Enum):
+class TasColumns(StrEnum):
+    """Expected to be found columns in a TAS diagram dataset."""
+
     LOCATION = "Location"
+    SAMPLE = "Sample"
+    AL2O3 = "Al2O3"
+    CAO = "CaO"
+    FE2O3T = "Fe2O3T"
+    K2O = "K2O"
+    MGO = "MgO"
+    MNO = "MnO"
+    NA2O = "Na2O"
+    P2O5 = "P2O5"
     SIO2 = "SiO2"
     TIO2 = "TiO2"
-    AL2O3 = "Al2O3"
-    FE2O3T = "Fe2O3T"
-    MNO = "MnO"
-    MGO = "MgO"
-    CAO = "CaO"
-    NA2O = "Na2O"
-    K2O = "K2O"
-    P2O5 = "P2O5"
+    K2O_PLUS_NA2O = "K2O + Na2O"
+
+
+def is_compound_in_data(cols: list[str], needle: str) -> list[str] | None:
+    """Check if a compound exist in the supplied columns in the dataset."""
+    casefold_needle = needle.casefold()
+
+    matches = [col for col in cols if casefold_needle in col.casefold()]
+
+    # If we have multiple matches, check if there is an exact match.
+    if len(matches) > 1:
+        for m in matches:
+            if needle.casefold() == m.casefold():
+                print(f"Found exact column match: {m}.")
+                return [m]
+
+    return matches if matches else None
+
+
+def prepare_columns_for_tas(data_in: pd.DataFrame) -> pd.DataFrame:
+    """Try to prepare SiO2 and Na2O+K2O columns for default X and Y axes."""
+    print("Preparing columns for TAS axes.")
+    columns = [c.strip() for c in data_in.columns]
+    is_sio2_in = is_compound_in_data(columns, TasColumns.SIO2)
+    is_k2o_in = is_compound_in_data(columns, TasColumns.K2O)
+    is_na2o_in = is_compound_in_data(columns, TasColumns.NA2O)
+    print(f"Found columns: {is_sio2_in}; {is_k2o_in}; {is_na2o_in}.")
+
+    # If columns do not exist, return the data as is.
+    if None in (is_sio2_in, is_k2o_in, is_na2o_in):
+        print(
+            "One of the required columns is missing: "
+            f"{is_sio2_in=}, {is_k2o_in=}, {is_na2o_in}."
+        )
+        return data_in
+
+    assert is_sio2_in is not None
+    assert is_k2o_in is not None
+    assert is_na2o_in is not None
+
+    # Must have only one column of each.
+    if len(is_sio2_in) != 1 or len(is_k2o_in) != 1 or len(is_na2o_in) != 1:
+        print("One of the required columns componds appears in multiple places.")
+        return data_in
+
+    # If the K2O + Na2O already exists, then it will show for both `is_*_in`'s.
+    if len({*(is_k2o_in + is_na2o_in)}) == 1:
+        return data_in
+
+    # Otherwise, construct the sum column.
+    data_in[TasColumns.K2O_PLUS_NA2O] = data_in[is_k2o_in[0]] + data_in[is_na2o_in[0]]
+    return data_in
 
 
 def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.DataFrame:
@@ -32,17 +87,19 @@ def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.Data
         if source in (None, "{DEFAULT_DATA}"):
             print("`DEFAULT_DATA` environment variable is not set.")
             print("Loading default data from assets.")
-            return pd.read_csv("assets/data/tas_diagram/default.csv")
+            return prepare_columns_for_tas(
+                pd.read_csv("assets/data/tas_diagram/default.csv")
+            )
 
     try:
         if isinstance(source, bytes):
             # Assume bytes means file upload.
             try:
-                data = pd.read_excel(io.BytesIO(source))
+                data = prepare_columns_for_tas(pd.read_excel(io.BytesIO(source)))
             except Exception:
-                data = pd.read_csv(io.BytesIO(source))
+                data = prepare_columns_for_tas(pd.read_csv(io.BytesIO(source)))
         elif isinstance(source, str | Path):
-            data = pd.read_csv(source)
+            data = prepare_columns_for_tas(pd.read_csv(source))
     except Exception as e:
         print(f"Error loading data: {e}")
         return pd.DataFrame({"Location": ["Unknown"]})

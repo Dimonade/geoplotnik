@@ -1,9 +1,9 @@
-Location,Sample Name,SiO2,MgO,TiO2
-Living room,Ada,17,42,5
-Living room,Bernhard,17.8,41,4.5
-Bedroom,Helga,16,48,8
-Bedroom,Tacius,18.1,44,7
-Cellar,Martin,19,36,13
-Cellar,Silvia,20,33,14
-Restroom,Cleopatra,17.2,50,9
-Restroom,Sigmund,18,51,10.0
+Location,Sample Name,SiO2,MgO,TiO2,K2O,Na2O
+Living room,Ada,42,17,5,7.7,4.2
+Living room,Bernhard,41,17.8,4.5,1.5,8
+Bedroom,Helga,48,16,8,8,6
+Bedroom,Tacius,44,18.1,7,7.7,1.1
+Cellar,Martin,52.2,19,13,5.2,7.5
+Cellar,Silvia,55,20,14,8.4,8.2
+Restroom,Cleopatra,50,17.2,9,11.45,2.2
+Restroom,Sigmund,51,18,10.0,1.6,12.7

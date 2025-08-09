@@ -5,12 +5,12 @@ description = "Plots your favourite geological diagrams with passion."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "dash>=3.2.0",
-    "dash-bootstrap-components>=2.0.3",
-    "pandas>=2.3.1",
-    "pandas-stubs>=2.3.0.250703",
-    "plotly>=6.2.0",
-    "python-dotenv>=1.1.1",
+  "dash>=3.2.0",
+  "dash-bootstrap-components>=2.0.3",
+  "pandas>=2.3.1",
+  "pandas-stubs>=2.3.0.250703",
+  "plotly>=6.2.0",
+  "python-dotenv>=1.1.1",
 ]
 
 [dependency-groups]
@@ -36,6 +36,11 @@ disallow_untyped_defs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 strict = true
+
+[[tool.mypy.overrides]]
+module = "tests/*.py"
+disallow_untyped_defs = false # Tests usually return `None`.
+check_untyped_defs = false
 
 [tool.ruff]
 exclude = [
