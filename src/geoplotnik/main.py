@@ -15,7 +15,7 @@ from geoplotnik.components.tas_diagram import callbacks  # noqa: F401
 from dotenv import load_dotenv
 
 
-def create_app():
+def create_app() -> Dash:
     """Create a Dash app to serve to the user."""
     load_dotenv()
 

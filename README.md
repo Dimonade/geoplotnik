@@ -1,5 +1,11 @@
 # Geoplotnik
 
+## Deployment
+
+The application is deployed [here](https://dimonade.eu.pythonanywhere.com).
+
+It is hosted on the free tier, so please no DDoS-ing =) .
+
 ## Introduction
 
 This is a `Dash` based reimplementation of 
