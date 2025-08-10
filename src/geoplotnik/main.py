@@ -15,17 +15,15 @@ from geoplotnik.components.tas_diagram import callbacks  # noqa: F401
 from dotenv import load_dotenv
 
 
-def main() -> int:
-    """Entrypoint to the application."""
+def create_app():
+    """Create a Dash app to serve to the user."""
     load_dotenv()
 
     app = Dash(external_stylesheets=[BOOTSTRAP])
     app.title = "Geoplotnik"
     app.layout = create_layout(app)
-    app.run(debug=True)
-
-    return 0
+    return app
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(create_app().run(debug=True))
