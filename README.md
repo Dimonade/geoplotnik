@@ -68,7 +68,7 @@ It is possible to use a `DEFAULT_DATA` environment variable to set the defalut d
 location. The parameter can be set either in the invoking terminal, or in a `.env`
 file. 
 
-### Notes
+## Notes
 
 This is a `Dash` based reimplementation of 
 [geochem-streamlit](https://geochem-app-x8wt6zxsp6csnwztd9nvgz.streamlit.app/).
