@@ -56,9 +56,7 @@ def update_data_store(
         # Default data loading upon dashboard initialization.
         if triggered == "url":
             df = load_data()
-            url_out = ""
-            upload_out = None
-            return df.to_dict("records"), url_out, upload_out
+            return df.to_dict("records"), "", None
 
         # Drap and drop from local user storage is triggered.
         if triggered == DATA_UPLOAD_AREA and upload_contents:
@@ -74,9 +72,8 @@ def update_data_store(
             decoded = base64.b64decode(content_string)
             df = load_data(decoded)
 
-            url_out = ""
             upload_out = upload_contents
-            return df.to_dict("records"), url_out, upload_out
+            return df.to_dict("records"), "", upload_out
 
         # URL loading is triggered.
         if triggered == DATA_LOADER_BUTTON:
@@ -89,8 +86,7 @@ def update_data_store(
                 raise PreventUpdate
 
             url_out = url_value
-            upload_out = None
-            return df.to_dict("records"), url_out, upload_out
+            return df.to_dict("records"), url_out, ""
 
         # Return is pressed inside of the URL input.
         if triggered == URL_INPUT:
@@ -146,6 +142,23 @@ def try_set_default_grouping_parameter(
             if needle.casefold() in op.casefold():
                 return op
     return None
+
+
+def sanitize_grouping_parameter(
+    df: pd.DataFrame,
+    grouping_parameter: str | None,
+    fill_label: str = "Ungrouped",
+    *,
+    drop_na: bool = False,
+) -> tuple[pd.DataFrame, str | None]:
+    """Ensure grouping column is present and clean NA values."""
+    if grouping_parameter and grouping_parameter in df.columns:
+        if drop_na:
+            df = df.dropna(subset=[grouping_parameter])
+        else:
+            df[grouping_parameter] = df[grouping_parameter].fillna(fill_label)
+        return df, grouping_parameter
+    return df, None
 
 
 @callback(
@@ -221,7 +234,7 @@ def update_tas_diagram(
     if len(df) == 0:
         raise PreventUpdate
 
-    group = grouping_parameter if grouping_parameter in df.columns else None
+    df, group = sanitize_grouping_parameter(df, grouping_parameter, drop_na=False)
 
     fig = px.scatter(df, x=x_axis, y=y_axis, color=group, symbol=group)
     fig.update_layout(
@@ -250,6 +263,7 @@ def update_tas_diagram(
 
 
 def load_data_from_store(data_in: list[dict[str, Any]]) -> pd.DataFrame:
+    """Convert serialized data from data store into a `DataFrame`."""
     return pd.DataFrame(data_in)
 
 
@@ -265,8 +279,8 @@ def convert_to_numeric_axes(df: pd.DataFrame, x_axis: str, y_axis: str) -> pd.Da
 def create_tas_overlay(fig: Any) -> Any:
     for traces in Rocks.to_overlay_traces():
         poly, label = traces
-        fig.add_trace(poly)
-        fig.add_trace(label)
+        fig.add_trace(poly.update(visible="legendonly"))
+        fig.add_trace(label.update(visible="legendonly"))
 
     # Each rock contributes 2 overlays: the polygon and the label.
     num_overlay_traces = len(Rocks) * 2
