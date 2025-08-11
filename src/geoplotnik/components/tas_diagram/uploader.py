@@ -2,6 +2,7 @@
 
 from dash import dcc
 from dash import html
+import dash_mantine_components as dmc
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import URL_INPUT
@@ -28,14 +29,13 @@ def render() -> html.Div:
             html.Div("... or ..."),
             html.Div(
                 [
-                    dcc.Input(
+                    dmc.TextInput(
                         id=URL_INPUT,
-                        type="text",
                         debounce=True,
-                        placeholder="Paste URL or file path...",
+                        placeholder="Paste URL or server file path...",
                         style={"flex": "1"},
                     ),
-                    html.Button("Load", id=DATA_LOADER_BUTTON, n_clicks=0),
+                    dmc.Button("Load", id=DATA_LOADER_BUTTON, n_clicks=0),
                 ],
                 style={
                     "display": "flex",

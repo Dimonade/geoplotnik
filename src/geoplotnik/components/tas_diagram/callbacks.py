@@ -12,6 +12,7 @@ from dash import html
 from dash import Input
 from dash import Output
 from dash.exceptions import PreventUpdate
+from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
@@ -22,9 +23,9 @@ from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
 from geoplotnik.components.ids import URL_INPUT
 from geoplotnik.components.tas_diagram.rocks import Rocks
-from geoplotnik.data.loaders import TasColumns
 from geoplotnik.data.loaders import load_data
 from geoplotnik.data.loaders import load_data_from_url
+from geoplotnik.data.loaders import TasColumns
 
 
 @callback(
@@ -107,8 +108,8 @@ def update_data_store(
 
 
 @callback(
-    Output(DATA_UPLOAD_PREVIEW, "data"),
-    Output(DATA_UPLOAD_PREVIEW, "columns"),
+    Output(DATA_UPLOAD_PREVIEW, "rowData"),
+    Output(DATA_UPLOAD_PREVIEW, "columnDefs"),
     Input(DATA_STORE, "data"),
 )
 def update_data_preview(
@@ -117,7 +118,8 @@ def update_data_preview(
     """Update the data previewer section with a snapshot of the data."""
     if not data:
         raise PreventUpdate
-    columns = [{"name": col, "id": col} for col in data[0]]
+    print("Updating data preview.")
+    columns = [{"field": col} for col in data[0]]
     return data, columns
 
 
@@ -209,18 +211,18 @@ def update_tas_diagram_dropdowns(
     Input(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "value"),
+    Input(DARK_LIGHT_MODE_TOGGLER, "checked"),
 )
 def update_tas_diagram(
     data: list[dict[str, Any]],
     x_axis: str,
     y_axis: str,
     grouping_parameter: str,
+    is_dark_mode: bool,
 ) -> html.Div:
     """Update the TAS diagram with the newest data store values."""
     print("Update TAS diagram callback triggered.")
-    print(
-        "x_axis:", x_axis, "y_axis:", y_axis, "grouping_parameter:", grouping_parameter
-    )
+    print(f"{x_axis=}, {y_axis=}, {grouping_parameter=}.")
 
     if not data or not x_axis or not y_axis:
         return html.Div("No data.", id=TAS_DIAGRAM)
@@ -238,11 +240,11 @@ def update_tas_diagram(
 
     fig = px.scatter(df, x=x_axis, y=y_axis, color=group, symbol=group)
     fig.update_layout(
-        title_text="TAS Diagram<br>values in [wt%]",
+        title_text="Scatter Plot",
         title_x=0.5,
         height=800,
-        plot_bgcolor="white",
-        paper_bgcolor="white",
+        # plot_bgcolor="white",
+        # paper_bgcolor="white",
         xaxis={"gridcolor": "black"},
         yaxis={"gridcolor": "black"},
     )
@@ -254,6 +256,10 @@ def update_tas_diagram(
     }
     fig.update_xaxes(axes_configuration)
     fig.update_yaxes(axes_configuration)
+    if is_dark_mode:
+        fig.update_layout(template="plotly_dark")
+    else:
+        fig.update_layout(template="plotly_white")
     fig = create_tas_overlay(fig)
     print("Creating a TAS diagram.")
     return html.Div(
@@ -294,7 +300,7 @@ def create_tas_overlay(fig: Any) -> Any:
                     {
                         "label": "Toggle overlay",
                         "method": "update",
-                        "args": [
+                        "args2": [
                             {"visible": [True] * len(fig.data)},
                             {
                                 "title": {
@@ -303,7 +309,7 @@ def create_tas_overlay(fig: Any) -> Any:
                                 },
                             },
                         ],
-                        "args2": [
+                        "args": [
                             {
                                 "visible": [True] * (len(fig.data) - num_overlay_traces)
                                 + [False] * num_overlay_traces,

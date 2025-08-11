@@ -5,7 +5,7 @@ from dash import html
 from dash import Output
 from dash import Input
 from dash import State
-import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 from geoplotnik.components.ids import TAS_DIAGRAM
 from geoplotnik.components.tas_diagram import axes_dropdown
 from geoplotnik.components.tas_diagram import previewer
@@ -21,39 +21,42 @@ def render() -> html.Div:
             uploader.render(),
             html.Div(
                 children=[
-                    dbc.Button(
+                    dmc.Button(
                         "Open data preview",
                         id=TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON,
                     ),
-                    dbc.Collapse(
-                        dbc.Card(
+                    dmc.Collapse(
+                        dmc.Card(
                             previewer.render(),
                         ),
                         id=TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER,
-                        is_open=False,
+                        opened=False,
                     ),
-                ]
+                ],
+                style={
+                    "gap": "10px",
+                    "margin-bottom": "10px",
+                },
             ),
             axes_dropdown.render(),
             html.Div(id=TAS_DIAGRAM),
         ],
-        style={"margin-bottom": "10px"},
     )
 
 
 @callback(
     Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "children"),
-    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "is_open"),
+    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
     Input(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "n_clicks"),
-    State(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "is_open"),
+    State(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
 )
-def toggle_data_previewer_collapser(n_clicks: int, is_open: bool) -> tuple[str, bool]:
+def toggle_data_previewer_collapser(n_clicks: int, opened: bool) -> tuple[str, bool]:
     """Toggle the data previewer collapse state."""
     # Upon app initialization, `n_clicks` is triggered, keep collapser collapsed.
     if n_clicks is None:
         return "Open data preview", False
 
     print("Toggling the TAS diagram data previewer.")
-    if is_open:
+    if opened:
         return "Open data preview", False
     return "Close data preview", True

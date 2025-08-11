@@ -5,8 +5,6 @@ The data can be uploaded from a local flie or through a link.
 """
 
 from dash import Dash
-from dash_bootstrap_components.themes import BOOTSTRAP
-
 from geoplotnik.components.layout import create_layout
 
 # Callbacks are not used directly, but must be imported.
@@ -19,7 +17,7 @@ def create_app() -> Dash:
     """Create a Dash app to serve to the user."""
     load_dotenv()
 
-    app = Dash(external_stylesheets=[BOOTSTRAP])
+    app = Dash(__name__)
     app.title = "Geoplotnik"
     app.layout = create_layout(app)
     return app

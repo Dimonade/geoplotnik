@@ -1,5 +1,8 @@
 """IDs of UI elements."""
 
+# Global UI components.
+DARK_LIGHT_MODE_TOGGLER = "dark-light-mode-toggler"
+
 # Cache of data.
 DATA_STORE = "data-store"
 
