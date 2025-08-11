@@ -164,11 +164,11 @@ def sanitize_grouping_parameter(
 
 
 @callback(
-    Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "data"),
     Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
-    Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "data"),
     Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
-    Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "data"),
     Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "value"),
     Input(DATA_STORE, "data"),
 )
