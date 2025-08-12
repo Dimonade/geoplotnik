@@ -79,18 +79,8 @@ def prepare_columns_for_tas(data_in: pd.DataFrame) -> pd.DataFrame:
     return data_in
 
 
-def load_data(source: Path | str | io.StringIO | bytes | None = None) -> pd.DataFrame:
+def load_data(source: Path | str | io.StringIO | bytes) -> pd.DataFrame:
     """Load tabular data to display."""
-    if source is None:
-        print("No data source provided.")
-        source = os.getenv("DEFAULT_DATA", None)
-        if source in (None, "{DEFAULT_DATA}"):
-            print("`DEFAULT_DATA` environment variable is not set.")
-            print("Loading default data from assets.")
-            return prepare_columns_for_tas(
-                pd.read_csv("assets/data/tas_diagram/default.csv")
-            )
-
     try:
         if isinstance(source, bytes):
             # Assume bytes means file upload.

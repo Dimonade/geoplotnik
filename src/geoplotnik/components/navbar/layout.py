@@ -1,9 +1,5 @@
 import dash_mantine_components as dmc
-import dash
 from dash import callback
-from dash import clientside_callback
-from dash import Dash
-from dash import html
 from dash import Input
 from dash import Output
 from dash import State
@@ -38,18 +34,31 @@ def render() -> dmc.AppShellNavbar:
                 leftSection=get_icon(icon="bi:house-door-fill"),
             ),
             dmc.NavLink(
+                label="General plots",
+                childrenOffset=28,
+                children=[
+                    dmc.NavLink(
+                        label="Scatter plot",
+                        description="Generic scatter plot",
+                        href="/general_plots/scatter",
+                        active="partial",
+                    )
+                ],
+            ),
+            dmc.NavLink(
                 label="Rock classification",
                 childrenOffset=28,
                 children=[
                     dmc.NavLink(
                         label="SiO2 vs Na2O+K2O",
                         description="Use for volcanic rocks.",
-                        href="/tas-diagram",
+                        href="/rock_classification/sio2_vs_na2o_plus_k2o",
                         active="partial",
                     ),
                     dmc.NavLink(
                         label="SiO2 vs K2O",
                         description="Emphasis on andesitic-basaltic composition range.",
+                        href="/rock_classification/sio2_vs_k2o",
                     ),
                 ],
             ),
@@ -60,6 +69,7 @@ def render() -> dmc.AppShellNavbar:
                     dmc.NavLink(
                         label="Volcanic rocks",
                         description="Ideal for weathered and metamorphosed rocks as this plot uses immobile trace elements.",
+                        href="/series_discriminant_templates/volcanic_rocks",
                     ),
                 ],
             ),

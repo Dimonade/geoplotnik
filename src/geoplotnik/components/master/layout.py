@@ -11,9 +11,5 @@ from dash_iconify import DashIconify
 
 def render() -> dmc.AppShellMain:
     return dmc.AppShellMain(
-        dmc.Group(
-            [
-                dash.page_container,
-            ]
-        )
+        dash.page_container,
     )

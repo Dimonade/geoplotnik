@@ -20,9 +20,8 @@ def create_layout(app: Dash) -> dmc.MantineProvider:
         dmc.AppShell(
             id=APPSHELL,
             children=[
-                dcc.Location(id=DATA_STORE_URL_TRIGGER, refresh=False),
-                header_layout.render(),
                 dcc.Store(id=DATA_STORE),
+                header_layout.render(),
                 navbar_layout.render(),
                 master_layout.render(),
             ],

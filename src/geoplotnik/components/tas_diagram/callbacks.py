@@ -1,6 +1,7 @@
 """Definitions of callbacks that make the TAS diagram interactive."""
 
 import base64
+import traceback
 from typing import Any
 
 import pandas as pd
@@ -36,30 +37,23 @@ from geoplotnik.data.loaders import TasColumns
     Input(URL_INPUT, "value"),
     Input(DATA_UPLOAD_AREA, "contents"),
     Input(DATA_LOADER_BUTTON, "n_clicks"),
-    Input(DATA_STORE_URL_TRIGGER, "pathname"),
 )
 def update_data_store(
     url_value: str,
     upload_contents: list[Any],
-    *_: tuple[
-        int,  # I just want the update signal, the n_clicks is not important.
-        str,  # I just want the update signal for application initialization.
-    ],
+    _: int,  # I just want the update signal, the n_clicks is not important.
 ) -> tuple[list[dict[str, Any]], str | None, str | None]:
     """Update the data store with user supplied data."""
     print("Updating data store.")
     triggered = ctx.triggered_id
     if triggered is None:
+        print("No trigger - no update.")
         raise PreventUpdate
+
     url_out = url_value
     upload_out = upload_contents
 
     try:
-        # Default data loading upon dashboard initialization.
-        if triggered == DATA_STORE_URL_TRIGGER:
-            df = load_data()
-            return df.to_dict("records"), "", None
-
         # Drap and drop from local user storage is triggered.
         if triggered == DATA_UPLOAD_AREA and upload_contents:
             c = (
@@ -80,11 +74,12 @@ def update_data_store(
         # URL loading is triggered.
         if triggered == DATA_LOADER_BUTTON:
             if not url_value:
-                print("Load URL button was triggered but no URL supplied.")
+                print("Load URL button was triggered but no URL supplied - no update.")
                 raise PreventUpdate
 
             df = load_data_from_url(url_value)
             if df is None:
+                print("No data from url with button trigger - no update.")
                 raise PreventUpdate
 
             url_out = url_value
@@ -93,18 +88,20 @@ def update_data_store(
         # Return is pressed inside of the URL input.
         if triggered == URL_INPUT:
             if not url_value:
-                print("Return inside URL input was triggered but no URL was supplied.")
+                print("Return inside URL input was triggered but no URL was supplied - no update.")
             df = load_data_from_url(url_value)
             if df is None:
+                print("No data from url trigger - no update.")
                 raise PreventUpdate
 
         # In any other case, prevent update.
+        print("No useful input for data loading - no update.")
         raise PreventUpdate
 
     # Since many things can go wrong, at the moment, blanket catch all exceptions,
     # and deal with then on a per case basis, as the cases come by.
-    except Exception as exc:
-        print("update_data_store: failed to load data:", repr(exc))
+    except Exception:
+        print("update_data_store: failed to load data.")
         raise PreventUpdate
 
 
@@ -243,9 +240,6 @@ def update_tas_diagram(
     fig.update_layout(
         title_text="Scatter Plot",
         title_x=0.5,
-        height=800,
-        # plot_bgcolor="white",
-        # paper_bgcolor="white",
         xaxis={"gridcolor": "black"},
         yaxis={"gridcolor": "black"},
     )
@@ -264,8 +258,9 @@ def update_tas_diagram(
     fig = create_tas_overlay(fig)
     print("Creating a TAS diagram.")
     return html.Div(
-        dcc.Graph(figure=fig),
+        dcc.Graph(figure=fig, style={"width": "100%", "height": "80vh"}),
         id=TAS_DIAGRAM,
+        style={"width": "100%", "height": "80vh"}
     )
 
 

@@ -4,9 +4,11 @@ from dash import callback
 from dash import html
 from dash import Input
 from dash import Output
+from dash import State
 from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
-from geoplotnik.data.loaders import load_data
+from geoplotnik.components.ids import TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER
+from geoplotnik.components.ids import TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON
 
 
 def render() -> html.Div:
@@ -15,21 +17,57 @@ def render() -> html.Div:
     Loading the default dataset once here for the columns and data
     allows remove the CPU spike from the data-store callback.
     """
-    default_data = load_data()
-    columns = [{"field": col} for col in default_data]
-    rows = default_data.to_dict("records")
-
     return html.Div(
         children=[
-            dmc.Text("Data preview:"),
-            dag.AgGrid(
-                id=DATA_UPLOAD_PREVIEW,
-                rowData=rows,
-                columnDefs=columns,
-                dashGridOptions={"pagination": True},
+            dmc.Button(
+                "Open data preview",
+                id=TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON,
             ),
-        ]
+            dmc.Collapse(
+                id=TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER,
+                opened=False,
+                children=[
+                    dmc.Card(
+                        children=[
+                            dmc.Stack(
+                                [
+                                    dmc.Text("Data preview:"),
+                                    dag.AgGrid(
+                                        id=DATA_UPLOAD_PREVIEW,
+                                        dashGridOptions={"pagination": True},
+                                    ),
+                                ],
+                                align="start",
+                                gap="sm",
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ],
+        style={
+            "gap": "10px",
+            "margin-bottom": "10px",
+        },
     )
+
+
+@callback(
+    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "children"),
+    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
+    Input(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "n_clicks"),
+    State(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
+)
+def toggle_data_previewer_collapser(n_clicks: int, opened: bool) -> tuple[str, bool]:
+    """Toggle the data previewer collapse state."""
+    # Upon app initialization, `n_clicks` is triggered, keep collapser collapsed.
+    if n_clicks is None:
+        return "Open data preview", False
+
+    print("Toggling the TAS diagram data previewer.")
+    if opened:
+        return "Open data preview", False
+    return "Close data preview", True
 
 
 @callback(
