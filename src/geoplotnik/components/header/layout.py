@@ -1,7 +1,10 @@
 import dash_mantine_components as dmc
+from dash import clientside_callback
+from dash import Input
+from dash import Output
 from dash_iconify import DashIconify
-from dash import Dash, Input, Output, State, callback, clientside_callback
 from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
+from geoplotnik.components.ids import HEADER_BURGER
 
 theme_toggle = dmc.Switch(
     offLabel=DashIconify(
@@ -37,7 +40,7 @@ def render() -> dmc.AppShellHeader:
                 dmc.Group(
                     [
                         dmc.Burger(
-                            id="burger",
+                            id=HEADER_BURGER,
                             size="sm",
                             hiddenFrom="sm",
                             opened=True,

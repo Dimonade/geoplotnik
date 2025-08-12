@@ -1,8 +1,7 @@
-from geoplotnik.data.loaders import is_compound_in_data
-from geoplotnik.data.loaders import TasColumns
-
 import pandas as pd
 import pytest
+from geoplotnik.data.loaders import is_compound_in_data
+from geoplotnik.data.loaders import TasColumns
 
 
 @pytest.mark.parametrize(

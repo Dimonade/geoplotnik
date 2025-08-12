@@ -1,21 +1,23 @@
 """TAS Diagram UI layout placements."""
 
+import dash_mantine_components as dmc
+import dash
 from dash import callback
 from dash import html
-from dash import Output
 from dash import Input
+from dash import Output
 from dash import State
-import dash_mantine_components as dmc
 from geoplotnik.components.ids import TAS_DIAGRAM
+from geoplotnik.components.ids import TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER
+from geoplotnik.components.ids import TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON
 from geoplotnik.components.tas_diagram import axes_dropdown
 from geoplotnik.components.tas_diagram import previewer
 from geoplotnik.components.tas_diagram import uploader
 
-TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON = "tas-diagram-data-preview-collapser-button"
-TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER = "tas-diagram-data-preview-collapser"
-
-
 def render() -> html.Div:
+    from geoplotnik.components.tas_diagram import callbacks  # noqa: F401
+    # Callbacks are not used directly, but must be imported to be registered.
+
     return html.Div(
         children=[
             uploader.render(),

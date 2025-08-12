@@ -1,8 +1,11 @@
-from dash import html
-from dash import callback, Input, Output
-import dash_mantine_components as dmc
 import dash_ag_grid as dag
-from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW, DARK_LIGHT_MODE_TOGGLER
+import dash_mantine_components as dmc
+from dash import callback
+from dash import html
+from dash import Input
+from dash import Output
+from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
+from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.data.loaders import load_data
 
 

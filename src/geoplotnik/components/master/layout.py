@@ -1,14 +1,19 @@
 import dash_mantine_components as dmc
+import dash
+from dash import callback
+from dash import clientside_callback
+from dash import Dash
+from dash import Input
+from dash import Output
+from dash import State
 from dash_iconify import DashIconify
-from dash import Dash, Input, Output, State, callback, clientside_callback
-import geoplotnik.components.tas_diagram.layout as tas_diagram_layout
 
 
 def render() -> dmc.AppShellMain:
     return dmc.AppShellMain(
         dmc.Group(
             [
-                tas_diagram_layout.render(),
+                dash.page_container,
             ]
         )
     )

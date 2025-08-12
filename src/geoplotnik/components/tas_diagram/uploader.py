@@ -1,8 +1,8 @@
 """Functionality related to TAS diagram file upload handling."""
 
+import dash_mantine_components as dmc
 from dash import dcc
 from dash import html
-import dash_mantine_components as dmc
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import URL_INPUT

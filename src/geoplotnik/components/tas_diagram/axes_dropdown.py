@@ -1,6 +1,6 @@
+import dash_mantine_components as dmc
 from dash import dcc
 from dash import html
-import dash_mantine_components as dmc
 from geoplotnik.components.ids import TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN

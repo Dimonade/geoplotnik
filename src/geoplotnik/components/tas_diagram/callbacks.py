@@ -15,6 +15,7 @@ from dash.exceptions import PreventUpdate
 from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
+from geoplotnik.components.ids import DATA_STORE_URL_TRIGGER
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM
@@ -35,7 +36,7 @@ from geoplotnik.data.loaders import TasColumns
     Input(URL_INPUT, "value"),
     Input(DATA_UPLOAD_AREA, "contents"),
     Input(DATA_LOADER_BUTTON, "n_clicks"),
-    Input("url", "pathname"),
+    Input(DATA_STORE_URL_TRIGGER, "pathname"),
 )
 def update_data_store(
     url_value: str,
@@ -55,7 +56,7 @@ def update_data_store(
 
     try:
         # Default data loading upon dashboard initialization.
-        if triggered == "url":
+        if triggered == DATA_STORE_URL_TRIGGER:
             df = load_data()
             return df.to_dict("records"), "", None
 
