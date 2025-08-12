@@ -39,6 +39,9 @@ def render() -> dmc.AppShellNavbar:
                 children=[
                     dmc.NavLink(
                         label="Scatter plot",
+                        leftSection=get_icon(
+                            icon="material-symbols:engineering-outline",
+                        ),
                         description="Generic scatter plot",
                         href="/general_plots/scatter",
                         active="partial",
@@ -57,6 +60,9 @@ def render() -> dmc.AppShellNavbar:
                     ),
                     dmc.NavLink(
                         label="SiO2 vs K2O",
+                        leftSection=get_icon(
+                            icon="material-symbols:engineering-outline",
+                        ),
                         description="Emphasis on andesitic-basaltic composition range.",
                         href="/rock_classification/sio2_vs_k2o",
                     ),
@@ -70,6 +76,9 @@ def render() -> dmc.AppShellNavbar:
                         label="Volcanic rocks",
                         description="Ideal for weathered and metamorphosed rocks as this plot uses immobile trace elements.",
                         href="/series_discriminant_templates/volcanic_rocks",
+                        leftSection=get_icon(
+                            icon="material-symbols:engineering-outline"
+                        ),
                     ),
                 ],
             ),
