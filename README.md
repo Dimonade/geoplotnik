@@ -1,5 +1,5 @@
-![Python](https://img.shields.io/badge/Python-3.13%2B-yellow?logo=python&logoColor=blue)(https://python.org)
- [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.13%2B-yellow?logo=python&logoColor=blue)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Geoplotnik
 
