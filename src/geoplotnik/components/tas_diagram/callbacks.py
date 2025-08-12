@@ -1,6 +1,7 @@
 """Definitions of callbacks that make the TAS diagram interactive."""
 
 import base64
+import traceback
 from typing import Any
 
 import pandas as pd
@@ -12,8 +13,10 @@ from dash import html
 from dash import Input
 from dash import Output
 from dash.exceptions import PreventUpdate
+from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
+from geoplotnik.components.ids import DATA_STORE_URL_TRIGGER
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM
@@ -22,9 +25,9 @@ from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
 from geoplotnik.components.ids import URL_INPUT
 from geoplotnik.components.tas_diagram.rocks import Rocks
-from geoplotnik.data.loaders import TasColumns
 from geoplotnik.data.loaders import load_data
 from geoplotnik.data.loaders import load_data_from_url
+from geoplotnik.data.loaders import TasColumns
 
 
 @callback(
@@ -34,32 +37,23 @@ from geoplotnik.data.loaders import load_data_from_url
     Input(URL_INPUT, "value"),
     Input(DATA_UPLOAD_AREA, "contents"),
     Input(DATA_LOADER_BUTTON, "n_clicks"),
-    Input("url", "pathname"),
 )
 def update_data_store(
     url_value: str,
     upload_contents: list[Any],
-    *_: tuple[
-        int,  # I just want the update signal, the n_clicks is not important.
-        str,  # I just want the update signal for application initialization.
-    ],
+    _: int,  # I just want the update signal, the n_clicks is not important.
 ) -> tuple[list[dict[str, Any]], str | None, str | None]:
     """Update the data store with user supplied data."""
     print("Updating data store.")
     triggered = ctx.triggered_id
     if triggered is None:
+        print("No trigger - no update.")
         raise PreventUpdate
+
     url_out = url_value
     upload_out = upload_contents
 
     try:
-        # Default data loading upon dashboard initialization.
-        if triggered == "url":
-            df = load_data()
-            url_out = ""
-            upload_out = None
-            return df.to_dict("records"), url_out, upload_out
-
         # Drap and drop from local user storage is triggered.
         if triggered == DATA_UPLOAD_AREA and upload_contents:
             c = (
@@ -74,45 +68,46 @@ def update_data_store(
             decoded = base64.b64decode(content_string)
             df = load_data(decoded)
 
-            url_out = ""
             upload_out = upload_contents
-            return df.to_dict("records"), url_out, upload_out
+            return df.to_dict("records"), "", upload_out
 
         # URL loading is triggered.
         if triggered == DATA_LOADER_BUTTON:
             if not url_value:
-                print("Load URL button was triggered but no URL supplied.")
+                print("Load URL button was triggered but no URL supplied - no update.")
                 raise PreventUpdate
 
             df = load_data_from_url(url_value)
             if df is None:
+                print("No data from url with button trigger - no update.")
                 raise PreventUpdate
 
             url_out = url_value
-            upload_out = None
-            return df.to_dict("records"), url_out, upload_out
+            return df.to_dict("records"), url_out, ""
 
         # Return is pressed inside of the URL input.
         if triggered == URL_INPUT:
             if not url_value:
-                print("Return inside URL input was triggered but no URL was supplied.")
+                print("Return inside URL input was triggered but no URL was supplied - no update.")
             df = load_data_from_url(url_value)
             if df is None:
+                print("No data from url trigger - no update.")
                 raise PreventUpdate
 
         # In any other case, prevent update.
+        print("No useful input for data loading - no update.")
         raise PreventUpdate
 
     # Since many things can go wrong, at the moment, blanket catch all exceptions,
     # and deal with then on a per case basis, as the cases come by.
-    except Exception as exc:
-        print("update_data_store: failed to load data:", repr(exc))
+    except Exception:
+        print("update_data_store: failed to load data.")
         raise PreventUpdate
 
 
 @callback(
-    Output(DATA_UPLOAD_PREVIEW, "data"),
-    Output(DATA_UPLOAD_PREVIEW, "columns"),
+    Output(DATA_UPLOAD_PREVIEW, "rowData"),
+    Output(DATA_UPLOAD_PREVIEW, "columnDefs"),
     Input(DATA_STORE, "data"),
 )
 def update_data_preview(
@@ -121,7 +116,8 @@ def update_data_preview(
     """Update the data previewer section with a snapshot of the data."""
     if not data:
         raise PreventUpdate
-    columns = [{"name": col, "id": col} for col in data[0]]
+    print("Updating data preview.")
+    columns = [{"field": col} for col in data[0]]
     return data, columns
 
 
@@ -148,12 +144,29 @@ def try_set_default_grouping_parameter(
     return None
 
 
+def sanitize_grouping_parameter(
+    df: pd.DataFrame,
+    grouping_parameter: str | None,
+    fill_label: str = "Ungrouped",
+    *,
+    drop_na: bool = False,
+) -> tuple[pd.DataFrame, str | None]:
+    """Ensure grouping column is present and clean NA values."""
+    if grouping_parameter and grouping_parameter in df.columns:
+        if drop_na:
+            df = df.dropna(subset=[grouping_parameter])
+        else:
+            df[grouping_parameter] = df[grouping_parameter].fillna(fill_label)
+        return df, grouping_parameter
+    return df, None
+
+
 @callback(
-    Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "data"),
     Output(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
-    Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "data"),
     Output(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
-    Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "options"),
+    Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "data"),
     Output(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "value"),
     Input(DATA_STORE, "data"),
 )
@@ -196,18 +209,18 @@ def update_tas_diagram_dropdowns(
     Input(TAS_DIAGRAM_X_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_Y_AXIS_DROPDOWN, "value"),
     Input(TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN, "value"),
+    Input(DARK_LIGHT_MODE_TOGGLER, "checked"),
 )
 def update_tas_diagram(
     data: list[dict[str, Any]],
     x_axis: str,
     y_axis: str,
     grouping_parameter: str,
+    is_dark_mode: bool,
 ) -> html.Div:
     """Update the TAS diagram with the newest data store values."""
     print("Update TAS diagram callback triggered.")
-    print(
-        "x_axis:", x_axis, "y_axis:", y_axis, "grouping_parameter:", grouping_parameter
-    )
+    print(f"{x_axis=}, {y_axis=}, {grouping_parameter=}.")
 
     if not data or not x_axis or not y_axis:
         return html.Div("No data.", id=TAS_DIAGRAM)
@@ -221,15 +234,12 @@ def update_tas_diagram(
     if len(df) == 0:
         raise PreventUpdate
 
-    group = grouping_parameter if grouping_parameter in df.columns else None
+    df, group = sanitize_grouping_parameter(df, grouping_parameter, drop_na=False)
 
     fig = px.scatter(df, x=x_axis, y=y_axis, color=group, symbol=group)
     fig.update_layout(
-        title_text="TAS Diagram<br>values in [wt%]",
+        title_text="Scatter Plot",
         title_x=0.5,
-        height=800,
-        plot_bgcolor="white",
-        paper_bgcolor="white",
         xaxis={"gridcolor": "black"},
         yaxis={"gridcolor": "black"},
     )
@@ -241,15 +251,21 @@ def update_tas_diagram(
     }
     fig.update_xaxes(axes_configuration)
     fig.update_yaxes(axes_configuration)
+    if is_dark_mode:
+        fig.update_layout(template="plotly_dark")
+    else:
+        fig.update_layout(template="plotly_white")
     fig = create_tas_overlay(fig)
     print("Creating a TAS diagram.")
     return html.Div(
-        dcc.Graph(figure=fig),
+        dcc.Graph(figure=fig, style={"width": "100%", "height": "80vh"}),
         id=TAS_DIAGRAM,
+        style={"width": "100%", "height": "80vh"}
     )
 
 
 def load_data_from_store(data_in: list[dict[str, Any]]) -> pd.DataFrame:
+    """Convert serialized data from data store into a `DataFrame`."""
     return pd.DataFrame(data_in)
 
 
@@ -265,8 +281,8 @@ def convert_to_numeric_axes(df: pd.DataFrame, x_axis: str, y_axis: str) -> pd.Da
 def create_tas_overlay(fig: Any) -> Any:
     for traces in Rocks.to_overlay_traces():
         poly, label = traces
-        fig.add_trace(poly)
-        fig.add_trace(label)
+        fig.add_trace(poly.update(visible="legendonly"))
+        fig.add_trace(label.update(visible="legendonly"))
 
     # Each rock contributes 2 overlays: the polygon and the label.
     num_overlay_traces = len(Rocks) * 2
@@ -280,7 +296,7 @@ def create_tas_overlay(fig: Any) -> Any:
                     {
                         "label": "Toggle overlay",
                         "method": "update",
-                        "args": [
+                        "args2": [
                             {"visible": [True] * len(fig.data)},
                             {
                                 "title": {
@@ -289,7 +305,7 @@ def create_tas_overlay(fig: Any) -> Any:
                                 },
                             },
                         ],
-                        "args2": [
+                        "args": [
                             {
                                 "visible": [True] * (len(fig.data) - num_overlay_traces)
                                 + [False] * num_overlay_traces,

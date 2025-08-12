@@ -1,3 +1,4 @@
+import dash_mantine_components as dmc
 from dash import dcc
 from dash import html
 from geoplotnik.components.ids import TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN
@@ -8,19 +9,19 @@ from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
 def render() -> html.Div:
     return html.Div(
         children=[
-            html.Div(
+            dmc.Text(
                 "X Axis:",
                 style={"display": "inline-block", "margin-right": "10px"},
             ),
-            dcc.Dropdown(
+            dmc.Select(
                 id=TAS_DIAGRAM_X_AXIS_DROPDOWN,
-                options=[],
+                data=[],
                 value=None,
-                multi=False,
+                searchable=True,
                 clearable=False,
                 style={"width": "200px", "display": "inline-block"},
             ),
-            html.Div(
+            dmc.Text(
                 "Y Axis:",
                 style={
                     "display": "inline-block",
@@ -28,15 +29,15 @@ def render() -> html.Div:
                     "margin-right": "10px",
                 },
             ),
-            dcc.Dropdown(
+            dmc.Select(
                 id=TAS_DIAGRAM_Y_AXIS_DROPDOWN,
-                options=[],
+                data=[],
                 value=None,
-                multi=False,
+                searchable=True,
                 clearable=False,
                 style={"width": "200px", "display": "inline-block"},
             ),
-            html.Div(
+            dmc.Text(
                 "Grouping parameter:",
                 style={
                     "display": "inline-block",
@@ -44,11 +45,11 @@ def render() -> html.Div:
                     "margin-right": "10px",
                 },
             ),
-            dcc.Dropdown(
+            dmc.Select(
                 id=TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN,
-                options=[],
+                data=[],
                 value=[],
-                multi=False,
+                searchable=True,
                 clearable=False,
                 placeholder="Select parameter to group by...",
                 style={"width": "200px", "display": "inline-block"},

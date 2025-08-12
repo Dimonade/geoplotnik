@@ -11,9 +11,15 @@ def render() -> html.Div:
     return html.Div(
         children=[
             uploader.render(),
-            previewer.render(),
             axes_dropdown.render(),
-            html.Div(id=TAS_DIAGRAM),
+            html.Div(
+                id=TAS_DIAGRAM,
+                style={
+                    "flex": 1,
+                    "minHeight": 0,
+                    "height": "100%",
+                },
+            ),
+            previewer.render(),
         ],
-        style={"margin-bottom": "10px"},
     )
