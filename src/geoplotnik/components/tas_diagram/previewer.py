@@ -73,7 +73,7 @@ def render_preview_children(opened, mounted, is_dark, data):
         )
         card = dmc.Card(dmc.Stack([grid], align="start", gap="sm"))
 
-    return [card], True  # mark as mounted
+    return [card], True
 
 
 @callback(
