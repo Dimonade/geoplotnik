@@ -69,16 +69,19 @@ def render() -> dmc.AppShellNavbar:
                 ],
             ),
             dmc.NavLink(
+                id={"type": "navlink", "path": "rock_classification", "leaf": False},
                 label="Rock classification",
                 childrenOffset=28,
                 children=[
                     dmc.NavLink(
+                        id={"type": "navlink", "path": "rock_classification/sio2_vs_k2o_plus_na2o", "leaf": True},
                         label="SiO2 vs Na2O+K2O",
                         description="Use for volcanic rocks.",
-                        href="/rock_classification/sio2_vs_na2o_plus_k2o",
+                        href="/rock_classification/sio2_vs_k2o_plus_na2o",
                         active="partial",
                     ),
                     dmc.NavLink(
+                        id={"type": "navlink", "path": "rock_classification/sio2_vs_k2o", "leaf": True},
                         label="SiO2 vs K2O",
                         leftSection=get_icon(
                             icon="material-symbols:engineering-outline",
@@ -89,10 +92,12 @@ def render() -> dmc.AppShellNavbar:
                 ],
             ),
             dmc.NavLink(
+                id={"type": "navlink", "path": "series_discriminant_templates", "leaf": False},
                 label="Series discriminant templates",
                 childrenOffset=28,
                 children=[
                     dmc.NavLink(
+                        id={"type": "navlink", "path": "series_discriminant_templates/volcanic_rocks", "leaf": False},
                         label="Volcanic rocks",
                         description="Ideal for weathered and metamorphosed rocks as this plot uses immobile trace elements.",
                         href="/series_discriminant_templates/volcanic_rocks",
