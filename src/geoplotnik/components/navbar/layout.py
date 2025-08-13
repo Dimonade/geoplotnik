@@ -97,7 +97,7 @@ def render() -> dmc.AppShellNavbar:
                 childrenOffset=28,
                 children=[
                     dmc.NavLink(
-                        id={"type": "navlink", "path": "series_discriminant_templates/volcanic_rocks", "leaf": False},
+                        id={"type": "navlink", "path": "series_discriminant_templates/volcanic_rocks", "leaf": True},
                         label="Volcanic rocks",
                         description="Ideal for weathered and metamorphosed rocks as this plot uses immobile trace elements.",
                         href="/series_discriminant_templates/volcanic_rocks",
