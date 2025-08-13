@@ -6,6 +6,14 @@ APPSHELL = "appshell"
 HEADER_BURGER = "header-burger"
 NAVBAR = "navbar"
 
+# Pages
+PAGE = "page"
+PAGE_HOME = f"{PAGE}-home"
+PAGE_SCATTER = f"{PAGE}-scatter"
+PAGE_SIO2_VS_K2O_PLUS_NA2O = f"{PAGE}-sio2-vs-k2o-plus-na2o"
+PAGE_SIO2_VS_K2O = f"{PAGE}-sio2-vs-k2o"
+PAGE_VOLCANIC_ROCKS = f"{PAGE}-volcanic-rocks"
+
 # Cache of data.
 DATA_STORE = "data-store"
 DATA_STORE_URL_TRIGGER = f"{DATA_STORE}-url-trigger"
