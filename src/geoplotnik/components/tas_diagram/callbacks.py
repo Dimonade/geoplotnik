@@ -1,7 +1,6 @@
 """Definitions of callbacks that make the TAS diagram interactive."""
 
 import base64
-import traceback
 from typing import Any
 
 import pandas as pd
@@ -16,7 +15,6 @@ from dash.exceptions import PreventUpdate
 from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
-from geoplotnik.components.ids import DATA_STORE_URL_TRIGGER
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM
@@ -28,6 +26,25 @@ from geoplotnik.components.tas_diagram.rocks import Rocks
 from geoplotnik.data.loaders import load_data
 from geoplotnik.data.loaders import load_data_from_url
 from geoplotnik.data.loaders import TasColumns
+
+
+def make_empty_scatter():
+    """Create an initial empty plot."""
+    fig = px.scatter(pd.DataFrame({"x": [], "y": []}), x="x", y="y")
+    fig.update_layout(
+        xaxis={"visible": True, "range": [0, 1]},
+        yaxis={"visible": True, "range": [0, 1]},
+        annotations=[
+            {
+                "text": "Upload data to see the plot",
+                "xref": "paper",
+                "yref": "paper",
+                "showarrow": False,
+                "font": {"size": 16},
+            }
+        ],
+    )
+    return fig
 
 
 @callback(
@@ -88,7 +105,9 @@ def update_data_store(
         # Return is pressed inside of the URL input.
         if triggered == URL_INPUT:
             if not url_value:
-                print("Return inside URL input was triggered but no URL was supplied - no update.")
+                print(
+                    "Return inside URL input was triggered but no URL was supplied - no update."
+                )
             df = load_data_from_url(url_value)
             if df is None:
                 print("No data from url trigger - no update.")
@@ -103,22 +122,6 @@ def update_data_store(
     except Exception:
         print("update_data_store: failed to load data.")
         raise PreventUpdate
-
-
-@callback(
-    Output(DATA_UPLOAD_PREVIEW, "rowData"),
-    Output(DATA_UPLOAD_PREVIEW, "columnDefs"),
-    Input(DATA_STORE, "data"),
-)
-def update_data_preview(
-    data: list[dict[str, str]],
-) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
-    """Update the data previewer section with a snapshot of the data."""
-    if not data:
-        raise PreventUpdate
-    print("Updating data preview.")
-    columns = [{"field": col} for col in data[0]]
-    return data, columns
 
 
 def try_set_default_axis_value(
@@ -223,7 +226,13 @@ def update_tas_diagram(
     print(f"{x_axis=}, {y_axis=}, {grouping_parameter=}.")
 
     if not data or not x_axis or not y_axis:
-        return html.Div("No data.", id=TAS_DIAGRAM)
+        print("Did not get any data, plotting empty plot.")
+        fig = make_empty_scatter()
+        return html.Div(
+            dcc.Graph(figure=fig, style={"width": "100%", "height": "80vh"}),
+            id=TAS_DIAGRAM,
+            style={"width": "100%", "height": "80vh"},
+        )
 
     if not data:
         return html.Div("No data for selected locations.", id=TAS_DIAGRAM)
@@ -260,7 +269,7 @@ def update_tas_diagram(
     return html.Div(
         dcc.Graph(figure=fig, style={"width": "100%", "height": "80vh"}),
         id=TAS_DIAGRAM,
-        style={"width": "100%", "height": "80vh"}
+        style={"width": "100%", "height": "80vh"},
     )
 
 

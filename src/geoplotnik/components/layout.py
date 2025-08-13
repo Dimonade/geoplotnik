@@ -8,8 +8,8 @@ from dash import _dash_renderer
 from dash import Dash
 from dash import dcc
 from geoplotnik.components.ids import APPSHELL
-from geoplotnik.components.ids import DATA_STORE_URL_TRIGGER
 from geoplotnik.components.ids import DATA_STORE
+from geoplotnik.components.ids import DATA_STORE_URL_TRIGGER
 
 _dash_renderer._set_react_version("18.2.0")
 

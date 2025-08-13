@@ -15,13 +15,16 @@ DATA_UPLOAD_AREA = "data-upload"
 DATA_UPLOAD_PREVIEW = "data-upload-preview"
 URL_INPUT = "url-input"
 DATA_LOADER_BUTTON = "data-loader-button"
+DATA_PREVIEW_MOUNTED_MARKER = "data-preview-marker"
 
 # TAS Diagram related stuff.
 TAS = "tas"
 TAS_DIAGRAM = f"{TAS}-diagram"
 TAS_DIAGRAM_CONTAINER = f"{TAS_DIAGRAM}-container"
 
-TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON = f"{TAS_DIAGRAM}-data-preview-collapser-button"
+TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON = (
+    f"{TAS_DIAGRAM}-data-preview-collapser-button"
+)
 TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER = f"{TAS_DIAGRAM}-data-preview-collapser"
 
 TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN = f"{TAS_DIAGRAM}-grouping-parameter-dropdown"
