@@ -14,22 +14,25 @@ from geoplotnik.components.ids import NAVBAR
 @callback(
     Output(APPSHELL, "navbar"),
     Output(HEADER_BURGER, "opened"),
-    Input(HEADER_BURGER, "n_clicks"),
-    Input({"type": "navlink", "path": ALL, "leaf": ALL}, "n_clicks"),
+        Input(HEADER_BURGER, "n_clicks"),
+        Input({"type": "navlink", "path": ALL, "leaf": ALL}, "n_clicks"),
     State(APPSHELL, "navbar"),
     prevent_initial_call=True,
 )
 def handle_toggle(burger_clicks, link_clicks, navbar):
     triggered = ctx.triggered_id
 
+    navbar = navbar or {}
+    collapsed = navbar.get("collapsed", {"mobile": True})
+
     if isinstance(triggered, dict) and triggered.get("type") == "navlink" and triggered.get("leaf", False):
         navbar["collapsed"] = {"mobile": True}
         return navbar, False
 
-    is_currently_open = not navbar.get("collapsed", {}).get("mobile", True)
-    navbar["collapsed"] = {"mobile": is_currently_open is False}
-    burger_opened = not is_currently_open
-    return navbar, burger_opened
+    # Burger toggle → invert
+    is_open = not collapsed.get("mobile", True)
+    navbar["collapsed"] = {"mobile": not is_open}
+    return navbar, not is_open
 
 def get_icon(icon):
     return DashIconify(icon=icon, height=16)
@@ -38,7 +41,6 @@ def get_icon(icon):
 def render() -> dmc.AppShellNavbar:
     return dmc.AppShellNavbar(
         id=NAVBAR,
-        collapsed={"mobile": True},
         children=[
             dmc.NavLink(
                 id={"type": "navlink", "path": "home", "leaf": True},
