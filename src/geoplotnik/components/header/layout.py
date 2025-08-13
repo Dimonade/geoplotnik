@@ -43,6 +43,7 @@ def render() -> dmc.AppShellHeader:
                             id=HEADER_BURGER,
                             size="sm",
                             hiddenFrom="sm",
+                            opened=False,
                         ),
                         # dmc.Image(src=geoplotnik_logo, h=40, flex=0),  # TODO: Create a logo.
                         dmc.Title("Geoplotnik", c="blue"),
