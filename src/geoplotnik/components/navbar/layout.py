@@ -22,13 +22,14 @@ from geoplotnik.components.ids import NAVBAR
 def handle_toggle(burger_clicks, link_clicks, navbar):
     triggered = ctx.triggered_id
 
-    if isinstance(triggered, dict) and triggered.get("type") == "navlink" and triggered.get("leaf"):
+    if isinstance(triggered, dict) and triggered.get("type") == "navlink" and triggered.get("leaf", False):
         navbar["collapsed"] = {"mobile": True}
         return navbar, False
 
-    is_open = not navbar.get("collapsed", {}).get("mobile", True)
-    navbar["collapsed"] = {"mobile": not is_open}
-    return navbar, not is_open
+    is_currently_open = not navbar.get("collapsed", {}).get("mobile", True)
+    navbar["collapsed"] = {"mobile": is_currently_open is False}
+    burger_opened = not is_currently_open
+    return navbar, burger_opened
 
 def get_icon(icon):
     return DashIconify(icon=icon, height=16)
@@ -37,6 +38,7 @@ def get_icon(icon):
 def render() -> dmc.AppShellNavbar:
     return dmc.AppShellNavbar(
         id=NAVBAR,
+        collapsed={"mobile": True},
         children=[
             dmc.NavLink(
                 id={"type": "navlink", "path": "home", "leaf": True},
