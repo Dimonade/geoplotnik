@@ -73,7 +73,7 @@ class Rocks(Enum):
         ys=[5, 7.3, 9.3, 5.9, 5],
     )
     BasaniteTephrite = TasBorder(
-        name="Basanite (ol<10%)<br>Tephrite (ol>10%)",
+        name="Basanite (if Ol<10%)<br>Tephrite (if Ol>10%)",
         xs=[41, 41, 45, 49.4, 45, 45, 41],
         ys=[3, 7, 9.4, 7.3, 5, 3, 3],
         label_position=(45, 7),
@@ -106,7 +106,7 @@ class Rocks(Enum):
         name="Trachybasalt", xs=[45, 49.4, 52, 45], ys=[5, 7.3, 5, 5]
     )
     TrachyteTrachydacite = TasBorder(
-        name="Trachyte (q<20%)<br>Trachydacite (q>20%)",
+        name="Trachyte (if Q<20%)<br>Trachydacite (if Q>20%)",
         xs=[61, 57.6, 63, 69, 69],
         ys=[13.5, 11.7, 7, 8, 13.5],
     )
@@ -119,5 +119,4 @@ class Rocks(Enum):
     @classmethod
     def to_overlay_traces(cls) -> list[go.Scatter]:
         """Convert the rock kinds into an overlay collection."""
-
         return [(member.value.to_scatter(), member.value.to_label()) for member in cls]
