@@ -81,7 +81,6 @@ def render_preview_children(opened, mounted, is_dark, data):
     Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "children"),
     Input(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "n_clicks"),
     State(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
-    prevent_initial_call=True,
 )
 def toggle_preview(n_clicks, opened):
     if n_clicks is None:
