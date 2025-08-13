@@ -14,25 +14,27 @@ from geoplotnik.components.ids import NAVBAR
 @callback(
     Output(APPSHELL, "navbar"),
     Output(HEADER_BURGER, "opened"),
-        Input(HEADER_BURGER, "n_clicks"),
-        Input({"type": "navlink", "path": ALL, "leaf": ALL}, "n_clicks"),
+    Input(HEADER_BURGER, "opened"),
+    Input({"type": "navlink", "path": ALL, "leaf": ALL}, "n_clicks"),
     State(APPSHELL, "navbar"),
-    prevent_initial_call=True,
 )
-def handle_toggle(burger_clicks, link_clicks, navbar):
+def handle_navbar_toggle(burger_opened, all_clicks, navbar):
     triggered = ctx.triggered_id
 
-    navbar = navbar or {}
-    collapsed = navbar.get("collapsed", {"mobile": True})
+    # If burger clicked.
+    if triggered == HEADER_BURGER:
+        # Toggle navbar based on burger_opened.
+        navbar["collapsed"] = {"mobile": not burger_opened}
+        return navbar, burger_opened
 
-    if isinstance(triggered, dict) and triggered.get("type") == "navlink" and triggered.get("leaf", False):
-        navbar["collapsed"] = {"mobile": True}
-        return navbar, False
+    # If a leaf navlink selected.
+    if isinstance(triggered, dict) and triggered.get("type") == "navlink":
+        if triggered.get("leaf", False):
+            navbar["collapsed"] = {"mobile": True}
+            return navbar, False
 
-    # Burger toggle → invert
-    is_open = not collapsed.get("mobile", True)
-    navbar["collapsed"] = {"mobile": not is_open}
-    return navbar, not is_open
+    return navbar, burger_opened
+
 
 def get_icon(icon):
     return DashIconify(icon=icon, height=16)
