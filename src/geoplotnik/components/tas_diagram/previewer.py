@@ -1,24 +1,27 @@
 import dash_ag_grid as dag
 import dash_mantine_components as dmc
 from dash import callback
+from dash import dcc
 from dash import html
 from dash import Input
 from dash import Output
 from dash import State
+from dash.exceptions import PreventUpdate
 from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
+from geoplotnik.components.ids import DATA_PREVIEW_MOUNTED_MARKER
+from geoplotnik.components.ids import DATA_STORE
 from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER
 from geoplotnik.components.ids import TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON
 
+AG_GRID_HEIGHT = "25vh"
+
 
 def render() -> html.Div:
-    """Render the previewer's UI.
-
-    Loading the default dataset once here for the columns and data
-    allows remove the CPU spike from the data-store callback.
-    """
+    """Render the previewer's UI."""
     return html.Div(
         children=[
+            dcc.Store(id=DATA_PREVIEW_MOUNTED_MARKER, data=False),
             dmc.Button(
                 "Open data preview",
                 id=TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON,
@@ -26,23 +29,8 @@ def render() -> html.Div:
             dmc.Collapse(
                 id=TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER,
                 opened=False,
-                children=[
-                    dmc.Card(
-                        children=[
-                            dmc.Stack(
-                                [
-                                    dmc.Text("Data preview:"),
-                                    dag.AgGrid(
-                                        id=DATA_UPLOAD_PREVIEW,
-                                        dashGridOptions={"pagination": True},
-                                    ),
-                                ],
-                                align="start",
-                                gap="sm",
-                            ),
-                        ],
-                    ),
-                ],
+                # Mounting the AG Grid only when the collapser is open.
+                children=[],
             ),
         ],
         style={
@@ -53,29 +41,51 @@ def render() -> html.Div:
 
 
 @callback(
-    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "children"),
-    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
-    Input(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "n_clicks"),
-    State(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
+    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "children"),
+    Output(DATA_PREVIEW_MOUNTED_MARKER, "data"),
+    Input(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
+    State(DATA_PREVIEW_MOUNTED_MARKER, "data"),
+    State(DARK_LIGHT_MODE_TOGGLER, "checked"),
+    State(DATA_STORE, "data"),
 )
-def toggle_data_previewer_collapser(n_clicks: int, opened: bool) -> tuple[str, bool]:
-    """Toggle the data previewer collapse state."""
-    # Upon app initialization, `n_clicks` is triggered, keep collapser collapsed.
-    if n_clicks is None:
-        return "Open data preview", False
+def render_preview_children(opened, mounted, is_dark, data):
+    """Render the children of the Collapse only if it is open."""
 
-    print("Toggling the TAS diagram data previewer.")
-    if opened:
-        return "Open data preview", False
-    return "Close data preview", True
+    # Not open, therefore no mounting.
+    if not opened and not mounted:
+        return [], mounted
+
+    # Otherwise, mount.
+    theme_class = "ag-theme-alpine-dark" if is_dark else "ag-theme-alpine"
+
+    if not data:
+        card = dmc.Card(dmc.Text("No data loaded yet."))
+    else:
+        first_row = data[0]
+        columns = [{"field": key} for key in first_row.keys()]
+        grid = dag.AgGrid(
+            id=DATA_UPLOAD_PREVIEW,
+            rowData=data,
+            columnDefs=columns,
+            className=theme_class,
+            dashGridOptions={"pagination": True},
+            style={"height": AG_GRID_HEIGHT, "width": "100%"},
+        )
+        card = dmc.Card(dmc.Stack([grid], align="start", gap="sm"))
+
+    return [card], True  # mark as mounted
 
 
 @callback(
-    Output(DATA_UPLOAD_PREVIEW, "className"),
-    Input(DARK_LIGHT_MODE_TOGGLER, "checked"),
+    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
+    Output(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "children"),
+    Input(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER_BUTTON, "n_clicks"),
+    State(TAS_DIAGRAM_DATA_PREVIEW_COLLAPSER, "opened"),
+    prevent_initial_call=True,
 )
-def update_data_preview_theme(is_dark_mode: bool) -> str:
-    """Update the theme of the data previewer according to the global theme."""
-    if is_dark_mode:
-        return "ag-theme-alpine-dark"
-    return "ag-theme-alpine"
+def toggle_preview(n_clicks, opened):
+    if n_clicks is None:
+        raise PreventUpdate
+    new_state = not opened
+    label = "Close data preview" if new_state else "Open data preview"
+    return new_state, label

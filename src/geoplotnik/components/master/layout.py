@@ -1,5 +1,5 @@
-import dash_mantine_components as dmc
 import dash
+import dash_mantine_components as dmc
 from dash import callback
 from dash import clientside_callback
 from dash import Dash
