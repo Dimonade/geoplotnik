@@ -16,7 +16,6 @@ from geoplotnik.components.ids import DARK_LIGHT_MODE_TOGGLER
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
 from geoplotnik.components.ids import DATA_STORE
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
-from geoplotnik.components.ids import DATA_UPLOAD_PREVIEW
 from geoplotnik.components.ids import TAS_DIAGRAM
 from geoplotnik.components.ids import TAS_DIAGRAM_GROUPING_PARAMETER_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
