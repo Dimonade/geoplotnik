@@ -5,6 +5,7 @@ from typing import Any
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objs as go
 from dash import callback
 from dash import ctx
 from dash import dcc
@@ -22,12 +23,13 @@ from geoplotnik.components.ids import TAS_DIAGRAM_X_AXIS_DROPDOWN
 from geoplotnik.components.ids import TAS_DIAGRAM_Y_AXIS_DROPDOWN
 from geoplotnik.components.ids import URL_INPUT
 from geoplotnik.components.tas_diagram.rocks import Rocks
-from geoplotnik.data.loaders import load_data
+from geoplotnik.data.loaders import load_table
+from geoplotnik.data.loaders import prepare_columns_for_tas
 from geoplotnik.data.loaders import load_data_from_url
 from geoplotnik.data.loaders import TasColumns
 
 
-def make_empty_scatter():
+def make_empty_scatter() -> go.Figure:
     """Create an initial empty plot."""
     fig = px.scatter(pd.DataFrame({"x": [], "y": []}), x="x", y="y")
     fig.update_layout(
@@ -40,7 +42,7 @@ def make_empty_scatter():
                 "yref": "paper",
                 "showarrow": False,
                 "font": {"size": 16},
-            }
+            },
         ],
     )
     return fig
@@ -57,7 +59,7 @@ def make_empty_scatter():
 def update_data_store(
     url_value: str,
     upload_contents: list[Any],
-    _: int,  # I just want the update signal, the n_clicks is not important.
+    _: int,  # I just want the update signal, the amount of clicks is not important.
 ) -> tuple[list[dict[str, Any]], str | None, str | None]:
     """Update the data store with user supplied data."""
     print("Updating data store.")
@@ -82,7 +84,7 @@ def update_data_store(
                 raise ValueError(msg)
             content_type, content_string = c.split(",", 1)
             decoded = base64.b64decode(content_string)
-            df = load_data(decoded)
+            df = load_table(decoded)
 
             upload_out = upload_contents
             return df.to_dict("records"), "", upload_out
@@ -134,7 +136,8 @@ def try_set_default_axis_value(
 
 
 def try_set_default_grouping_parameter(
-    options: list[dict[str, str]], needles: list[str]
+    options: list[dict[str, str]],
+    needles: list[str],
 ) -> str | None:
     """Try to set the default grouping parameter to a logical categorical group."""
     opts = [o["value"] for o in options]
@@ -182,27 +185,44 @@ def update_tas_diagram_dropdowns(
     list[dict[str, str]],
     str | None,
 ]:
-    """Update the TAS diagram's axes and grouping parameters dropdowns' values."""
-    print("Updating x axis, y axis and grouping parameter dropdown with data columns.")
-    if not data:
-        raise PreventUpdate
+    """Update TAS diagram dropdowns or clear them if the data is empty/malformed."""
+    print("Updating x, y, and grouping parameter dropdowns with data columns.")
 
-    cols = sorted(set(data[0].keys()))
-    opts = [{"label": col, "value": col} for col in cols]
+    # Helper for clearing all dropdowns
+    def clear_dropdowns() -> tuple[list[Any], None, list[Any], None, list[Any], None]:
+        return [], None, [], None, [], None
 
-    default_x_axis = try_set_default_axis_value(opts, TasColumns.SIO2)
-    default_y_axis = try_set_default_axis_value(opts, TasColumns.K2O_PLUS_NA2O)
-    default_grouping_parameter = try_set_default_grouping_parameter(
-        opts, [TasColumns.LOCATION, TasColumns.SAMPLE]
-    )
-    return (
-        opts,
-        default_x_axis,
-        opts,
-        default_y_axis,
-        opts,
-        default_grouping_parameter,
-    )
+    # Validate data format
+    if (
+        not isinstance(data, list)
+        or not data
+        or not isinstance(data[0], dict)
+        or not data[0].keys()
+    ):
+        return clear_dropdowns()
+
+    try:
+        cols = sorted(set(data[0].keys()))
+        opts = [{"label": col, "value": col} for col in cols]
+
+        default_x_axis = try_set_default_axis_value(opts, TasColumns.SIO2)
+        default_y_axis = try_set_default_axis_value(opts, TasColumns.K2O_PLUS_NA2O)
+        default_grouping_parameter = try_set_default_grouping_parameter(
+            opts, [TasColumns.LOCATION, TasColumns.SAMPLE]
+        )
+
+    except Exception as e:
+        print(f"Error updating dropdowns: {e}")
+        return clear_dropdowns()
+    else:
+        return (
+            opts,
+            default_x_axis,
+            opts,
+            default_y_axis,
+            opts,
+            default_grouping_parameter,
+        )
 
 
 @callback(

@@ -23,6 +23,8 @@ DATA_UPLOAD_AREA = "data-upload"
 DATA_UPLOAD_PREVIEW = "data-upload-preview"
 URL_INPUT = "url-input"
 DATA_LOADER_BUTTON = "data-loader-button"
+DATA_LOADER_FILE_PROPERTIES = "data-loader-file-properties"
+DATA_LOADER_FILE_PROPERTIES_COLLAPSER = "data-loader-file-properties-collapser"
 DATA_PREVIEW_MOUNTED_MARKER = "data-preview-marker"
 
 # TAS Diagram related stuff.

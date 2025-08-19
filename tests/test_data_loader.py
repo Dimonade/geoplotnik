@@ -1,7 +1,11 @@
+import io
+
 import pandas as pd
 import pytest
+from hypothesis import given, strategies as st
 from geoplotnik.data.loaders import is_compound_in_data
 from geoplotnik.data.loaders import TasColumns
+from geoplotnik.data.loaders import TableLoaderError
 
 
 @pytest.mark.parametrize(

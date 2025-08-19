@@ -4,6 +4,7 @@ import dash_mantine_components as dmc
 from dash import dcc
 from dash import html
 from geoplotnik.components.ids import DATA_LOADER_BUTTON
+from geoplotnik.components.ids import DATA_LOADER_FILE_PROPERTIES
 from geoplotnik.components.ids import DATA_UPLOAD_AREA
 from geoplotnik.components.ids import URL_INPUT
 
@@ -36,6 +37,7 @@ def render() -> html.Div:
                         style={"flex": "1"},
                     ),
                     dmc.Button("Load", id=DATA_LOADER_BUTTON, n_clicks=0),
+                    dmc.Button("Properties", id=DATA_LOADER_FILE_PROPERTIES, n_clicks=0),
                 ],
                 style={
                     "display": "flex",

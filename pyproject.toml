@@ -3,22 +3,27 @@ name = "geoplotnik"
 version = "0.1.0"
 description = "Plots your favourite geological diagrams with passion."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.13.6"
 dependencies = [
+  "charset-normalizer>=3.4.2",
   "dash>=3.2.0",
   "dash-ag-grid>=32.3.1",
   "dash-bootstrap-components>=2.0.3",
   "dash-iconify>=0.1.2",
   "dash-mantine-components>=2.1.0",
+  "jedi==0.18.2",
+  "openpyxl>=3.1.5",
   "pandas>=2.3.1",
   "pandas-stubs>=2.3.0.250703",
   "plotly>=6.2.0",
   "python-dotenv>=1.1.1",
+  "xlrd>=2.0.2",
 ]
 
 [dependency-groups]
 dev = [
   "coverage>=7.9.2",
+  "hypothesis>=6.138.0",
   "isort>=6.0.1",
   "mccabe>=0.7.0",
   "mypy>=1.17.0",
